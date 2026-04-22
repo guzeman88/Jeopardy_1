@@ -8,3 +8,15 @@ node_modules
 .env.*
 recovered-dashboard-*.json
 project-dashboard-backup-*.json
+data/raw/
+data/processed/
+venv/
+notebooks/
+__pycache__/
+*.pyc
+*.parquet
+*.py
+requirements.txt
+src/
+scripts/
+build_flashcards.py
