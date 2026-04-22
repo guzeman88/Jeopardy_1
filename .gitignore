@@ -1,0 +1,30 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.env
+
+# Large data files
+data/raw/
+data/processed/
+
+# Output cards (too large for git)
+output/cards/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+.vercel
+node_modules
+.env.*
+!.env.example
+recovered-dashboard-*.json
+project-dashboard-backup-*.json

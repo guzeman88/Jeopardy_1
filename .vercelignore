@@ -1,0 +1,10 @@
+.git
+.vercel
+.claude
+_design_refs
+deploy-kit
+node_modules
+.env
+.env.*
+recovered-dashboard-*.json
+project-dashboard-backup-*.json
