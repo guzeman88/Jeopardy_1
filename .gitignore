@@ -28,3 +28,4 @@ node_modules
 !.env.example
 recovered-dashboard-*.json
 project-dashboard-backup-*.json
+.vercel
