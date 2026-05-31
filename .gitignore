@@ -9,9 +9,13 @@ dist/
 build/
 .env
 
-# Large data files
+# Large processed data files (too big for git — kept locally only)
 data/raw/
-data/processed/
+data/processed/associations_answers.json
+data/processed/associations_categories.json
+data/processed/clues_cleaned.parquet
+data/processed/flashcards.json
+# data/processed/game_data.json is committed (805 KB — needed by the game)
 
 # Output cards (too large for git)
 output/cards/

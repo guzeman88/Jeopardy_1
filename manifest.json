@@ -1,0 +1,37 @@
+{
+  "name": "Jeopardy! Live",
+  "short_name": "Jeopardy!",
+  "description": "Play the ultimate Jeopardy! quiz game. 1200+ categories from 41 seasons. Solo & multiplayer, Daily Doubles, Final Jeopardy, and more.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0e2a",
+  "theme_color": "#0a0e2a",
+  "categories": ["games", "education", "entertainment"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Play Solo",
+      "short_name": "Solo",
+      "description": "Start a new solo game",
+      "url": "/?play=solo",
+      "icons": [{"src": "icons/icon.svg", "sizes": "any"}]
+    }
+  ]
+}
