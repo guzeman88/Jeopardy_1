@@ -1,14 +1,14 @@
 {
-  "name": "Jeopardy! Live",
-  "short_name": "Jeopardy!",
-  "description": "Play the ultimate Jeopardy! quiz game. 1200+ categories from 41 seasons. Solo & multiplayer, Daily Doubles, Final Jeopardy, and more.",
+  "name": "Jeopardy! Study",
+  "short_name": "J! Study",
+  "description": "Study Jeopardy! answers and clues from 41 seasons. Browse, study flashcards, and track your progress.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0e2a",
-  "theme_color": "#0a0e2a",
-  "categories": ["games", "education", "entertainment"],
+  "background_color": "#0d0d1a",
+  "theme_color": "#0d0d1a",
+  "categories": ["education", "entertainment"],
   "lang": "en",
   "icons": [
     {
@@ -27,10 +27,17 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Play Solo",
-      "short_name": "Solo",
-      "description": "Start a new solo game",
-      "url": "/?play=solo",
+      "name": "Browse Cards",
+      "short_name": "Browse",
+      "description": "Browse all study cards",
+      "url": "/",
+      "icons": [{"src": "icons/icon.svg", "sizes": "any"}]
+    },
+    {
+      "name": "Play Jeopardy!",
+      "short_name": "Game",
+      "description": "Play the quiz game",
+      "url": "/game",
       "icons": [{"src": "icons/icon.svg", "sizes": "any"}]
     }
   ]

@@ -3,12 +3,13 @@
    Cache-first for assets, network-first for game data.
    ========================================================= */
 
-const CACHE = 'jeopardy-live-v1';
+const CACHE = 'jep-study-v2';
 const PRECACHE = [
   '/',
-  '/index.html',
+  '/study.html',
   '/manifest.json',
   '/icons/icon.svg',
+  '/data/processed/flashcards.json',
   '/data/processed/game_data.json',
 ];
 
@@ -50,7 +51,7 @@ self.addEventListener('fetch', (e) => {
       }).catch(() => {
         // Offline fallback for navigation requests
         if (request.mode === 'navigate') {
-          return caches.match('/index.html');
+          return caches.match('/study.html');
         }
       });
     })

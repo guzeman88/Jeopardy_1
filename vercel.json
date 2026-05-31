@@ -3,7 +3,8 @@
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
+    { "source": "/", "destination": "/study.html" },
+    { "source": "/game", "destination": "/index.html" },
     { "source": "/flashcards", "destination": "/flashcards.html" }
   ]
 }

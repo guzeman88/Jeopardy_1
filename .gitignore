@@ -14,7 +14,7 @@ data/raw/
 data/processed/associations_answers.json
 data/processed/associations_categories.json
 data/processed/clues_cleaned.parquet
-data/processed/flashcards.json
+# data/processed/flashcards.json is committed (2.4 MB — needed by study app)
 # data/processed/game_data.json is committed (805 KB — needed by the game)
 
 # Output cards (too large for git)

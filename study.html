@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jeopardy! Study</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d0d1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="J! Study">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <style>
+    :root {
+      --bg:   #0d0d1a;
+      --bg2:  #14142b;
+      --bg3:  #1c1c38;
+      --bg4:  #24244a;
+      --gold: #f7c948;
+      --gold2:#d4a800;
+      --txt:  #f0f0f4;
+      --txt2: #a8a8c0;
+      --txt3: #555570;
+      --known:  #22c55e;
+      --review: #f59e0b;
+      --nav-h: 58px;
+      --hdr-h: 52px;
+      --sb: env(safe-area-inset-bottom, 0px);
+      --st: env(safe-area-inset-top, 0px);
+      --sl: env(safe-area-inset-left, 0px);
+      --sr: env(safe-area-inset-right, 0px);
+      --ease: cubic-bezier(.4,0,.2,1);
+      --ease-out: cubic-bezier(0,.8,.3,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-tap-highlight-color: transparent; }
+    body {
+      height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--txt);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Loading ── */
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    .ld-logo { color: var(--gold); font-size: 1.5rem; font-weight: 900; letter-spacing: .05em; }
+    .ld-sub  { color: var(--txt3); font-size: .85rem; }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid rgba(247,201,72,.15);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── App shell ── */
+    #app {
+      display: flex; flex-direction: column;
+      height: 100%;
+      padding-top: var(--st);
+      padding-left: var(--sl);
+      padding-right: var(--sr);
+    }
+
+    /* ── Header ── */
+    #hdr {
+      height: var(--hdr-h);
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(247,201,72,.12);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 10px;
+      flex-shrink: 0;
+    }
+    .hdr-logo { color: var(--gold); font-size: 1.05rem; font-weight: 900; letter-spacing: .04em; flex: 1; }
+    .hdr-badge {
+      font-size: .75rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      background: rgba(34,197,94,.12);
+      color: var(--known);
+      border: 1px solid rgba(34,197,94,.25);
+      white-space: nowrap;
+    }
+
+    /* ── Content ── */
+    #content { flex: 1; overflow: hidden; position: relative; }
+    .tab-pane {
+      position: absolute; inset: 0;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      display: none;
+    }
+    .tab-pane.active { display: block; }
+
+    /* ── Bottom nav ── */
+    #nav {
+      display: flex;
+      height: calc(var(--nav-h) + var(--sb));
+      padding-bottom: var(--sb);
+      background: var(--bg2);
+      border-top: 1px solid rgba(255,255,255,.07);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      flex: 1; border: none; background: none; cursor: pointer;
+      color: var(--txt3);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+      transition: color .2s var(--ease);
+      padding: 8px 4px 6px;
+      text-transform: uppercase;
+    }
+    .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+    .nav-btn.active { color: var(--gold); }
+    .nav-btn.active svg { stroke-width: 2.2; }
+
+    /* ── Browse ── */
+    .browse-bar {
+      padding: 10px 12px 8px;
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      display: flex; gap: 8px; align-items: center;
+      position: sticky; top: 0; z-index: 20;
+    }
+    .search-wrap { position: relative; flex: 1; }
+    .search-icon {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; color: var(--txt3); pointer-events: none;
+    }
+    #q {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 9px 10px 9px 32px;
+      color: var(--txt); font-size: .92rem;
+      outline: none; transition: border-color .2s;
+    }
+    #q:focus { border-color: var(--gold); }
+    #q::placeholder { color: var(--txt3); }
+    #sort-sel {
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 9px 10px;
+      color: var(--txt2); font-size: .82rem;
+      outline: none; cursor: pointer;
+      -webkit-appearance: none; min-width: 96px;
+    }
+    #sort-sel:focus { border-color: var(--gold); }
+
+    .browse-meta { padding: 6px 14px 4px; font-size: .73rem; color: var(--txt3); }
+
+    .card-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      cursor: pointer; transition: background .12s;
+      -webkit-user-select: none; user-select: none;
+    }
+    .card-row:active { background: var(--bg3); }
+    .status-pip {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0; background: var(--bg4); transition: background .2s;
+    }
+    .status-pip.known  { background: var(--known); }
+    .status-pip.review { background: var(--review); }
+    .card-row-body { flex: 1; min-width: 0; }
+    .card-row-term {
+      font-size: .96rem; font-weight: 600; color: var(--txt);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+    }
+    .card-row-meta { font-size: .73rem; color: var(--txt3); }
+    .row-arrow { color: var(--txt3); opacity: .5; flex-shrink: 0; }
+    .row-arrow svg { width: 15px; height: 15px; }
+    .empty-state { padding: 48px 24px; text-align: center; color: var(--txt3); font-size: .9rem; line-height: 1.7; }
+
+    /* ── Detail sheet ── */
+    #sheet { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+    #sheet-bg {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.65); opacity: 0;
+      transition: opacity .3s var(--ease);
+    }
+    #sheet-panel {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: var(--bg2); border-radius: 22px 22px 0 0;
+      max-height: 90vh; display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .35s var(--ease-out);
+      padding-bottom: var(--sb);
+    }
+    #sheet.open { pointer-events: all; }
+    #sheet.open #sheet-bg    { opacity: 1; }
+    #sheet.open #sheet-panel { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,.18); margin: 10px auto 8px; flex-shrink: 0;
+    }
+    .sheet-head {
+      padding: 4px 16px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0;
+    }
+    .sheet-term  { font-size: 1.55rem; font-weight: 900; color: var(--gold); margin-bottom: 6px; line-height: 1.2; }
+    .sheet-submeta { font-size: .78rem; color: var(--txt3); margin-bottom: 10px; }
+    .cats-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cat-chip {
+      font-size: .68rem; font-weight: 600; padding: 3px 8px; border-radius: 12px;
+      background: rgba(247,201,72,.08); color: rgba(247,201,72,.75);
+      border: 1px solid rgba(247,201,72,.18); letter-spacing: .02em;
+    }
+    .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; padding: 14px 16px 4px; }
+    .clue-block { margin-bottom: 18px; }
+    .clue-cat { font-size: .68rem; font-weight: 800; color: var(--gold2); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .clue-txt  { font-size: .9rem; color: var(--txt2); line-height: 1.55; }
+    .sheet-foot {
+      padding: 12px 16px; border-top: 1px solid rgba(255,255,255,.07);
+      display: flex; gap: 8px; flex-shrink: 0;
+    }
+    .sht-btn {
+      flex: 1; padding: 13px 10px; border-radius: 12px; border: none;
+      font-size: .9rem; font-weight: 700; cursor: pointer; transition: opacity .15s;
+      -webkit-user-select: none; user-select: none;
+    }
+    .sht-btn:active { opacity: .72; }
+    .sht-close  { background: var(--bg3); color: var(--txt2); max-width: 74px; }
+    .sht-review { background: rgba(245,158,11,.15); color: var(--review); border: 1.5px solid rgba(245,158,11,.35); }
+    .sht-known  { background: var(--known); color: #000; }
+    .sht-btn.is-active { opacity: .55; }
+
+    /* ── Study tab ── */
+    #study-wrap {
+      display: flex; flex-direction: column;
+      height: 100%; padding: 16px;
+    }
+    .study-prog-bar {
+      height: 3px; background: var(--bg4); border-radius: 2px;
+      margin-bottom: 10px; flex-shrink: 0; overflow: hidden;
+    }
+    .study-prog-fill {
+      height: 100%; background: var(--gold); border-radius: 2px;
+      transition: width .4s var(--ease);
+    }
+    .study-counter { text-align: center; font-size: .75rem; color: var(--txt3); margin-bottom: 14px; flex-shrink: 0; }
+    .study-card {
+      background: var(--bg2); border: 1.5px solid rgba(247,201,72,.18); border-radius: 18px;
+      flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+    }
+    .sc-front {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 32px 24px; text-align: center;
+    }
+    .sc-label { font-size: .7rem; font-weight: 700; color: var(--txt3); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
+    .sc-term  { font-size: 1.9rem; font-weight: 900; color: var(--gold); line-height: 1.2; }
+    .sc-cats  { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+    .sc-reveal {
+      margin-top: 28px; background: rgba(247,201,72,.1);
+      border: 1.5px solid rgba(247,201,72,.28); color: var(--gold); border-radius: 12px;
+      padding: 12px 28px; font-size: .9rem; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .sc-reveal:active { background: rgba(247,201,72,.2); }
+    .sc-back { display: none; flex: 1; flex-direction: column; min-height: 0; }
+    .sc-back.vis { display: flex; }
+    .sc-back-term {
+      padding: 14px 18px 10px; font-size: 1.1rem; font-weight: 800; color: var(--gold);
+      border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0;
+    }
+    .sc-back-clues { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; padding: 12px 18px; }
+    .sc-more { font-size: .73rem; color: var(--txt3); padding: 8px 0; font-style: italic; }
+    .study-actions { display: flex; gap: 8px; margin-top: 12px; flex-shrink: 0; }
+    .study-actions .sht-btn { flex: 1; }
+    .btn-skip { background: var(--bg3); color: var(--txt2); }
+    .study-splash {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; padding: 32px; text-align: center; gap: 18px;
+    }
+    .splash-icon  { font-size: 3.2rem; line-height: 1; }
+    .splash-title { font-size: 1.1rem; font-weight: 700; color: var(--txt); }
+    .splash-sub   { font-size: .88rem; color: var(--txt2); line-height: 1.65; max-width: 280px; }
+    .splash-btn {
+      background: var(--gold); color: #0d0d1a; border: none; border-radius: 14px;
+      padding: 14px 32px; font-size: 1rem; font-weight: 900; cursor: pointer; margin-top: 4px;
+    }
+    .splash-btn:active { opacity: .82; }
+    .splash-btn-sec {
+      background: none; color: var(--txt3); border: none; font-size: .85rem;
+      cursor: pointer; text-decoration: underline;
+    }
+
+    /* ── Stats tab ── */
+    .stats-wrap { padding: 20px 16px 32px; }
+    .stats-section-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--txt3); margin-bottom: 12px; }
+    .stat-bar-wrap { margin: 0 0 22px; }
+    .stat-bar { height: 14px; border-radius: 7px; background: var(--bg3); overflow: hidden; display: flex; }
+    .stat-bar-known  { background: var(--known);  border-radius: 7px 0 0 7px; transition: width .5s var(--ease); min-width: 0; }
+    .stat-bar-review { background: var(--review); transition: width .5s var(--ease); min-width: 0; }
+    .stat-bar-unseen { flex: 1; }
+    .stat-bar-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: .74rem; color: var(--txt3); }
+    .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+    .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg2); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 16px; }
+    .stat-card-label { font-size: .72rem; color: var(--txt3); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+    .stat-card-val { font-size: 2rem; font-weight: 900; color: var(--txt); line-height: 1; }
+    .stat-card-val.gold  { color: var(--gold); }
+    .stat-card-val.green { color: var(--known); }
+    .stat-card-val.amber { color: var(--review); }
+    .reset-btn {
+      width: 100%; margin-top: 8px; background: none;
+      border: 1.5px solid rgba(239,68,68,.28); color: rgba(239,68,68,.6);
+      border-radius: 12px; padding: 13px; font-size: .88rem; font-weight: 600;
+      cursor: pointer; transition: background .15s;
+    }
+    .reset-btn:active { background: rgba(239,68,68,.1); }
+    .game-link-row {
+      margin-top: 16px; padding: 14px 16px;
+      background: var(--bg2); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px; text-align: center; font-size: .85rem; color: var(--txt3);
+    }
+    .game-link { color: var(--gold); text-decoration: none; font-weight: 600; }
+    .game-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-logo">Jeopardy! Study</div>
+  <div class="spinner"></div>
+  <div class="ld-sub" id="ld-sub">Loading study cards…</div>
+</div>
+
+<div id="app" style="display:none">
+  <div id="hdr">
+    <span class="hdr-logo">Jeopardy! Study</span>
+    <span class="hdr-badge" id="hdr-badge">0 known</span>
+  </div>
+
+  <div id="content">
+
+    <!-- ── Browse ── -->
+    <div id="tab-browse" class="tab-pane active">
+      <div class="browse-bar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="q" type="search" placeholder="Search answers or categories…" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+        <select id="sort-sel">
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="clues">Most Clues</option>
+          <option value="unseen">Unseen First</option>
+          <option value="known">Known Last</option>
+        </select>
+      </div>
+      <div class="browse-meta" id="browse-meta"></div>
+      <div id="browse-list"></div>
+    </div>
+
+    <!-- ── Study ── -->
+    <div id="tab-study" class="tab-pane">
+      <div id="study-content" style="height:100%"></div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div id="tab-stats" class="tab-pane">
+      <div class="stats-wrap">
+        <div class="stats-section-title">Overall Progress</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar">
+            <div class="stat-bar-known"  id="bar-k" style="width:0%"></div>
+            <div class="stat-bar-review" id="bar-r" style="width:0%"></div>
+            <div class="stat-bar-unseen"></div>
+          </div>
+          <div class="stat-bar-legend">
+            <span><span class="legend-dot" style="background:var(--known)"></span>Known</span>
+            <span><span class="legend-dot" style="background:var(--review)"></span>Reviewing</span>
+            <span><span class="legend-dot" style="background:var(--bg4)"></span>Unseen</span>
+          </div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card"><div class="stat-card-label">Total</div><div class="stat-card-val gold" id="sv-total">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Unseen</div><div class="stat-card-val" id="sv-unseen">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Known</div><div class="stat-card-val green" id="sv-known">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Reviewing</div><div class="stat-card-val amber" id="sv-review">—</div></div>
+        </div>
+        <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+        <div class="game-link-row">
+          Looking for the game? <a class="game-link" href="game">Play Jeopardy! →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" id="nav-browse" onclick="showTab('browse')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+      Browse
+    </button>
+    <button class="nav-btn" id="nav-study" onclick="showTab('study')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="3"/><line x1="9" y1="21" x2="15" y2="21"/><line x1="12" y1="18" x2="12" y2="21"/></svg>
+      Study
+    </button>
+    <button class="nav-btn" id="nav-stats" onclick="showTab('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      Progress
+    </button>
+  </nav>
+</div>
+
+<!-- Detail sheet -->
+<div id="sheet">
+  <div id="sheet-bg" onclick="closeSheet()"></div>
+  <div id="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-term" id="sht-term"></div>
+      <div class="sheet-submeta" id="sht-meta"></div>
+      <div class="cats-wrap" id="sht-cats"></div>
+    </div>
+    <div class="sheet-body" id="sht-body"></div>
+    <div class="sheet-foot">
+      <button class="sht-btn sht-close" onclick="closeSheet()">Close</button>
+      <button class="sht-btn sht-review" id="btn-review" onclick="setStatus('review')">↩ Review</button>
+      <button class="sht-btn sht-known"  id="btn-known"  onclick="setStatus('known')">✓ Known</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const PKEY = 'jep-study-v1';
+
+let cards    = [];
+let progress = {};
+let curId    = null;
+let activeTab  = 'browse';
+let studyQueue = [];
+let studyIdx   = 0;
+
+/* ── Init ── */
+async function init() {
+  try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
+  try {
+    const r   = await fetch('data/processed/flashcards.json');
+    const raw = await r.json();
+    cards = Object.entries(raw).map(([id, d]) => ({
+      id,
+      clues: Array.isArray(d.clues) ? d.clues : [],
+      cats:  Array.isArray(d.categories) ? d.categories : [],
+      total: d.total_clues || (Array.isArray(d.clues) ? d.clues.length : 0)
+    }));
+    cards.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display     = 'flex';
+    renderBrowse();
+    renderStats();
+    updateBadge();
+  } catch (err) {
+    document.getElementById('ld-sub').textContent = 'Failed to load data. ' + err.message;
+  }
+}
+
+/* ── Tabs ── */
+function showTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  activeTab = name;
+  if (name === 'study') renderStudy();
+  if (name === 'stats') renderStats();
+}
+
+/* ── Browse ── */
+function getList() {
+  const q    = (document.getElementById('q').value || '').trim().toLowerCase();
+  const sort = document.getElementById('sort-sel').value;
+  let list   = cards.slice();
+  if (q) {
+    list = list.filter(c =>
+      c.id.toLowerCase().includes(q) ||
+      c.cats.some(cat => cat.toLowerCase().includes(q))
+    );
+  }
+  const ORDER = {unseen: 0, review: 1, known: 2};
+  if      (sort === 'az')     list.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
+  else if (sort === 'za')     list.sort((a, b) => b.id.localeCompare(a.id, undefined, {sensitivity:'base'}));
+  else if (sort === 'clues')  list.sort((a, b) => b.total - a.total);
+  else if (sort === 'unseen') list.sort((a, b) => {
+    const oa = ORDER[progress[a.id] || 'unseen'];
+    const ob = ORDER[progress[b.id] || 'unseen'];
+    return oa - ob || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
+  });
+  else if (sort === 'known') list.sort((a, b) => {
+    const oa = ORDER[progress[a.id] || 'unseen'];
+    const ob = ORDER[progress[b.id] || 'unseen'];
+    return ob - oa || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
+  });
+  return list;
+}
+
+function renderBrowse() {
+  const list = getList();
+  document.getElementById('browse-meta').textContent = `${list.length.toLocaleString()} of ${cards.length.toLocaleString()} cards`;
+  if (!list.length) {
+    document.getElementById('browse-list').innerHTML = '<div class="empty-state">No cards match your search.</div>';
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  for (const c of list) {
+    const st  = progress[c.id] || 'unseen';
+    const row = document.createElement('div');
+    row.className = 'card-row';
+    row.dataset.id = c.id;
+    row.innerHTML = `
+      <div class="status-pip ${st === 'unseen' ? '' : st}"></div>
+      <div class="card-row-body">
+        <div class="card-row-term">${h(c.id)}</div>
+        <div class="card-row-meta">${c.total} clues · ${c.cats.length} categories</div>
+      </div>
+      <div class="row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    `;
+    row.addEventListener('click', () => openSheet(c.id));
+    frag.appendChild(row);
+  }
+  const el = document.getElementById('browse-list');
+  el.innerHTML = '';
+  el.appendChild(frag);
+}
+
+document.getElementById('q').addEventListener('input', renderBrowse);
+document.getElementById('sort-sel').addEventListener('change', renderBrowse);
+
+/* ── Detail sheet ── */
+function openSheet(id) {
+  const c = cards.find(x => x.id === id);
+  if (!c) return;
+  curId = id;
+  document.getElementById('sht-term').textContent = c.id;
+  document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
+  document.getElementById('sht-cats').innerHTML = c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
+  document.getElementById('sht-body').innerHTML = c.clues.map(cl => `
+    <div class="clue-block">
+      <div class="clue-cat">${h(cl.cat)}</div>
+      <div class="clue-txt">${h(cl.text)}</div>
+    </div>
+  `).join('');
+  refreshSheetBtns();
+  document.getElementById('sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.body.style.overflow = '';
+  curId = null;
+}
+
+function refreshSheetBtns() {
+  const st = curId ? (progress[curId] || 'unseen') : 'unseen';
+  const bk = document.getElementById('btn-known');
+  const br = document.getElementById('btn-review');
+  bk.textContent = st === 'known'  ? '✓ Known ✓' : '✓ Known';
+  br.textContent = st === 'review' ? '↩ Review ↩' : '↩ Review';
+  bk.classList.toggle('is-active', st === 'known');
+  br.classList.toggle('is-active', st === 'review');
+}
+
+function setStatus(st) {
+  if (!curId) return;
+  if (progress[curId] === st) delete progress[curId];
+  else progress[curId] = st;
+  save();
+  refreshSheetBtns();
+  updateBadge();
+  renderStats();
+  const row = document.querySelector(`#browse-list .card-row[data-id="${CSS.escape(curId)}"]`);
+  if (row) {
+    const pip  = row.querySelector('.status-pip');
+    const newSt = progress[curId] || 'unseen';
+    pip.className = 'status-pip' + (newSt !== 'unseen' ? ' ' + newSt : '');
+  }
+}
+
+/* ── Study mode ── */
+function buildQueue() {
+  const review = cards.filter(c => progress[c.id] === 'review');
+  const unseen = cards.filter(c => !progress[c.id]);
+  shuffle(review); shuffle(unseen);
+  return [...review, ...unseen];
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = 0 | (Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function renderStudy() {
+  const known = Object.values(progress).filter(v => v === 'known').length;
+  const total = cards.length;
+  if (known === total && total > 0) {
+    document.getElementById('study-content').innerHTML = `
+      <div class="study-splash">
+        <div class="splash-icon">🎉</div>
+        <div class="splash-title">All ${total} cards known!</div>
+        <div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div>
+        <button class="splash-btn" onclick="showTab('stats')">View Progress</button>
+      </div>`;
+    return;
+  }
+  if (!studyQueue.length || studyIdx >= studyQueue.length) {
+    studyQueue = buildQueue(); studyIdx = 0;
+  }
+  if (!studyQueue.length) {
+    document.getElementById('study-content').innerHTML = `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
+    return;
+  }
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  if (studyIdx >= studyQueue.length) {
+    document.getElementById('study-content').innerHTML = `
+      <div class="study-splash">
+        <div class="splash-icon">🏁</div>
+        <div class="splash-title">Round complete!</div>
+        <div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div>
+        <button class="splash-btn" onclick="restartStudy()">Study Again</button>
+        <button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button>
+      </div>`;
+    return;
+  }
+  const c   = studyQueue[studyIdx];
+  const tot = studyQueue.length;
+  const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
+  document.getElementById('study-content').innerHTML = `
+    <div id="study-wrap">
+      <div class="study-prog-bar">
+        <div class="study-prog-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>
+      <div class="study-card">
+        <div class="sc-front" id="sc-front">
+          <div class="sc-label">Answer</div>
+          <div class="sc-term">${h(c.id)}</div>
+          <div class="sc-cats">
+            ${c.cats.slice(0, 5).map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('')}
+            ${c.cats.length > 5 ? `<span class="cat-chip">+${c.cats.length - 5} more</span>` : ''}
+          </div>
+          <button class="sc-reveal" onclick="revealCard()">Reveal Clues</button>
+        </div>
+        <div class="sc-back" id="sc-back">
+          <div class="sc-back-term">${h(c.id)}</div>
+          <div class="sc-back-clues">
+            ${c.clues.slice(0, 10).map(cl => `
+              <div class="clue-block">
+                <div class="clue-cat">${h(cl.cat)}</div>
+                <div class="clue-txt">${h(cl.text)}</div>
+              </div>
+            `).join('')}
+            ${c.clues.length > 10 ? `<div class="sc-more">+${c.clues.length - 10} more — open in Browse for full list</div>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="study-actions" id="study-acts" style="display:none">
+        <button class="sht-btn btn-skip"   onclick="studyNext()">Skip</button>
+        <button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>
+        <button class="sht-btn sht-known"  onclick="studyMark('known')">✓ Known</button>
+      </div>
+    </div>`;
+}
+
+function revealCard() {
+  const front = document.getElementById('sc-front');
+  const back  = document.getElementById('sc-back');
+  const acts  = document.getElementById('study-acts');
+  if (front) front.style.display = 'none';
+  if (back)  back.classList.add('vis');
+  if (acts)  acts.style.display  = 'flex';
+}
+
+function studyMark(st) {
+  const c = studyQueue[studyIdx];
+  if (c) { progress[c.id] = st; save(); updateBadge(); }
+  studyIdx++;
+  renderStudyCard();
+}
+
+function studyNext() { studyIdx++; renderStudyCard(); }
+
+function restartStudy() { studyQueue = buildQueue(); studyIdx = 0; renderStudyCard(); }
+
+/* ── Stats ── */
+function renderStats() {
+  const total  = cards.length;
+  const known  = cards.filter(c => progress[c.id] === 'known').length;
+  const review = cards.filter(c => progress[c.id] === 'review').length;
+  const unseen = total - known - review;
+  const kPct   = total ? (known  / total * 100) : 0;
+  const rPct   = total ? (review / total * 100) : 0;
+  document.getElementById('bar-k').style.width    = kPct + '%';
+  document.getElementById('bar-r').style.width    = rPct + '%';
+  document.getElementById('sv-total').textContent  = total;
+  document.getElementById('sv-known').textContent  = known;
+  document.getElementById('sv-review').textContent = review;
+  document.getElementById('sv-unseen').textContent = unseen;
+}
+
+/* ── Persistence ── */
+function save() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (_) {} }
+
+function updateBadge() {
+  const known = Object.values(progress).filter(v => v === 'known').length;
+  const total = cards.length;
+  document.getElementById('hdr-badge').textContent = total ? `${known} / ${total} known` : '0 known';
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  progress = {}; save(); studyQueue = []; studyIdx = 0;
+  updateBadge(); renderStats(); renderBrowse();
+  if (activeTab === 'study') renderStudy();
+}
+
+function h(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Service worker ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('sw.js').catch(() => {})
+  );
+}
+
+init();
+</script>
+</body>
+</html>
