@@ -458,13 +458,358 @@
 'use strict';
 
 const PKEY = 'jep-study-v1';
+const PAGE = 60; // rows per render batch
 
-let cards    = [];
-let progress = {};
-let curId    = null;
+let cards      = [];
+let cardMap    = new Map();  // id → card, O(1) lookup
+let progress   = {};
+let knownCount = 0;
+let reviewCount = 0;
+let curId      = null;
 let activeTab  = 'browse';
 let studyQueue = [];
 let studyIdx   = 0;
+
+// Browse incremental scroll state
+let browseList   = [];  // current filtered+sorted list
+let browseEnd    = 0;   // how many rows rendered so far
+let scrollObs    = null;
+
+/* ── Init ── */
+async function init() {
+  try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
+  recomputeCounts();
+  try {
+    document.getElementById('ld-sub').textContent = 'Downloading cards…';
+    const r   = await fetch('data/processed/flashcards.json');
+    document.getElementById('ld-sub').textContent = 'Parsing…';
+    const raw = await r.json();
+    document.getElementById('ld-sub').textContent = 'Ready!';
+    cards = Object.entries(raw).map(([id, d]) => ({
+      id,
+      clues: Array.isArray(d.clues) ? d.clues : [],
+      cats:  Array.isArray(d.categories) ? d.categories : [],
+      total: d.total_clues || (Array.isArray(d.clues) ? d.clues.length : 0)
+    }));
+    cards.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
+    cardMap = new Map(cards.map(c => [c.id, c]));
+
+    // Show app shell first, then render list in next frame to avoid jank
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display     = 'flex';
+    updateBadge();
+    renderStats();
+    requestAnimationFrame(() => renderBrowse());
+  } catch (err) {
+    document.getElementById('ld-sub').textContent = 'Failed to load: ' + err.message;
+  }
+}
+
+/* ── Tabs ── */
+function showTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  activeTab = name;
+  if (name === 'study') renderStudy();
+  if (name === 'stats') renderStats();
+}
+
+/* ── Browse: build sorted/filtered list ── */
+function getList() {
+  const q    = (document.getElementById('q').value || '').trim().toLowerCase();
+  const sort = document.getElementById('sort-sel').value;
+  let list   = q
+    ? cards.filter(c => c.id.toLowerCase().includes(q) || c.cats.some(cat => cat.toLowerCase().includes(q)))
+    : cards.slice();
+  const ORDER = {unseen: 0, review: 1, known: 2};
+  if      (sort === 'az')     list.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
+  else if (sort === 'za')     list.sort((a, b) => b.id.localeCompare(a.id, undefined, {sensitivity:'base'}));
+  else if (sort === 'clues')  list.sort((a, b) => b.total - a.total);
+  else if (sort === 'unseen') list.sort((a, b) => {
+    const oa = ORDER[progress[a.id] || 'unseen'], ob = ORDER[progress[b.id] || 'unseen'];
+    return oa - ob || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
+  });
+  else if (sort === 'known') list.sort((a, b) => {
+    const oa = ORDER[progress[a.id] || 'unseen'], ob = ORDER[progress[b.id] || 'unseen'];
+    return ob - oa || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
+  });
+  return list;
+}
+
+/* ── Browse: render (incremental) ── */
+function renderBrowse() {
+  browseList = getList();
+  browseEnd  = 0;
+  const el = document.getElementById('browse-list');
+  el.innerHTML = '';
+  document.getElementById('browse-meta').textContent =
+    `${browseList.length.toLocaleString()} of ${cards.length.toLocaleString()} cards`;
+  if (!browseList.length) {
+    el.innerHTML = '<div class="empty-state">No cards match your search.</div>';
+    return;
+  }
+  appendBrowseRows(PAGE, el);
+}
+
+function appendBrowseRows(count, el) {
+  el = el || document.getElementById('browse-list');
+  // Remove old sentinel if present
+  const old = el.querySelector('#browse-sentinel');
+  if (old) old.remove();
+
+  const end  = Math.min(browseEnd + count, browseList.length);
+  const frag = document.createDocumentFragment();
+  for (let i = browseEnd; i < end; i++) {
+    const c   = browseList[i];
+    const st  = progress[c.id] || 'unseen';
+    const row = document.createElement('div');
+    row.className  = 'card-row';
+    row.dataset.id = c.id;
+    row.innerHTML  =
+      `<div class="status-pip${st !== 'unseen' ? ' ' + st : ''}"></div>` +
+      `<div class="card-row-body">` +
+        `<div class="card-row-term">${h(c.id)}</div>` +
+        `<div class="card-row-meta">${c.total} clues · ${c.cats.length} categories</div>` +
+      `</div>` +
+      `<div class="row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+    row.addEventListener('click', () => openSheet(c.id));
+    frag.appendChild(row);
+  }
+  browseEnd = end;
+  el.appendChild(frag);
+
+  // If more rows remain, add an IntersectionObserver sentinel
+  if (browseEnd < browseList.length) {
+    const sentinel = document.createElement('div');
+    sentinel.id = 'browse-sentinel';
+    sentinel.style.cssText = 'height:1px;width:100%';
+    el.appendChild(sentinel);
+
+    if (!scrollObs) {
+      scrollObs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) appendBrowseRows(PAGE);
+      }, {rootMargin: '300px'});
+    }
+    scrollObs.disconnect();
+    scrollObs.observe(sentinel);
+  }
+}
+
+// Debounce helper
+let _searchTimer = null;
+function onSearchInput() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(renderBrowse, 180);
+}
+document.getElementById('q').addEventListener('input', onSearchInput);
+document.getElementById('sort-sel').addEventListener('change', renderBrowse);
+
+/* ── Detail sheet ── */
+function openSheet(id) {
+  const c = cardMap.get(id);
+  if (!c) return;
+  curId = id;
+  document.getElementById('sht-term').textContent = c.id;
+  document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
+  document.getElementById('sht-cats').innerHTML =
+    c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
+  document.getElementById('sht-body').innerHTML =
+    c.clues.map(cl =>
+      `<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`
+    ).join('');
+  refreshSheetBtns();
+  document.getElementById('sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.body.style.overflow = '';
+  curId = null;
+}
+
+function refreshSheetBtns() {
+  const st = curId ? (progress[curId] || 'unseen') : 'unseen';
+  const bk = document.getElementById('btn-known');
+  const br = document.getElementById('btn-review');
+  bk.textContent = st === 'known'  ? '✓ Known ✓' : '✓ Known';
+  br.textContent = st === 'review' ? '↩ Review ↩' : '↩ Review';
+  bk.classList.toggle('is-active', st === 'known');
+  br.classList.toggle('is-active', st === 'review');
+}
+
+function setStatus(st) {
+  if (!curId) return;
+  const prev = progress[curId];
+  if (prev === st) {
+    delete progress[curId];
+    if (st === 'known') knownCount--; else reviewCount--;
+  } else {
+    if (prev === 'known') knownCount--;
+    else if (prev === 'review') reviewCount--;
+    progress[curId] = st;
+    if (st === 'known') knownCount++; else reviewCount++;
+  }
+  save();
+  refreshSheetBtns();
+  updateBadge();
+  renderStats();
+  // Update pip in the visible list without full re-render
+  const row = document.querySelector(`#browse-list .card-row[data-id="${CSS.escape(curId)}"]`);
+  if (row) {
+    const newSt = progress[curId] || 'unseen';
+    row.querySelector('.status-pip').className = 'status-pip' + (newSt !== 'unseen' ? ' ' + newSt : '');
+  }
+}
+
+/* ── Study mode ── */
+function buildQueue() {
+  const review = cards.filter(c => progress[c.id] === 'review');
+  const unseen = cards.filter(c => !progress[c.id]);
+  shuffle(review); shuffle(unseen);
+  return [...review, ...unseen];
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = 0 | (Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function renderStudy() {
+  const total = cards.length;
+  if (knownCount === total && total > 0) {
+    document.getElementById('study-content').innerHTML =
+      `<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
+    return;
+  }
+  if (!studyQueue.length || studyIdx >= studyQueue.length) {
+    studyQueue = buildQueue(); studyIdx = 0;
+  }
+  if (!studyQueue.length) {
+    document.getElementById('study-content').innerHTML =
+      `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
+    return;
+  }
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  if (studyIdx >= studyQueue.length) {
+    document.getElementById('study-content').innerHTML =
+      `<div class="study-splash"><div class="splash-icon">🏁</div><div class="splash-title">Round complete!</div><div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div><button class="splash-btn" onclick="restartStudy()">Study Again</button><button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button></div>`;
+    return;
+  }
+  const c   = studyQueue[studyIdx];
+  const tot = studyQueue.length;
+  const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
+  document.getElementById('study-content').innerHTML =
+    `<div id="study-wrap">` +
+    `<div class="study-prog-bar"><div class="study-prog-fill" style="width:${pct}%"></div></div>` +
+    `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
+    `<div class="study-card">` +
+      `<div class="sc-front" id="sc-front">` +
+        `<div class="sc-label">Answer</div>` +
+        `<div class="sc-term">${h(c.id)}</div>` +
+        `<div class="sc-cats">${c.cats.slice(0,5).map(cat=>`<span class="cat-chip">${h(cat)}</span>`).join('')}${c.cats.length>5?`<span class="cat-chip">+${c.cats.length-5} more</span>`:''}</div>` +
+        `<button class="sc-reveal" onclick="revealCard()">Reveal Clues</button>` +
+      `</div>` +
+      `<div class="sc-back" id="sc-back">` +
+        `<div class="sc-back-term">${h(c.id)}</div>` +
+        `<div class="sc-back-clues">` +
+          c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
+          (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
+        `</div>` +
+      `</div>` +
+    `</div>` +
+    `<div class="study-actions" id="study-acts" style="display:none">` +
+      `<button class="sht-btn btn-skip" onclick="studyNext()">Skip</button>` +
+      `<button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>` +
+      `<button class="sht-btn sht-known" onclick="studyMark('known')">✓ Known</button>` +
+    `</div></div>`;
+}
+
+function revealCard() {
+  const front = document.getElementById('sc-front');
+  const back  = document.getElementById('sc-back');
+  const acts  = document.getElementById('study-acts');
+  if (front) front.style.display = 'none';
+  if (back)  back.classList.add('vis');
+  if (acts)  acts.style.display  = 'flex';
+}
+
+function studyMark(st) {
+  const c = studyQueue[studyIdx];
+  if (c) {
+    const prev = progress[c.id];
+    if (prev === 'known') knownCount--; else if (prev === 'review') reviewCount--;
+    progress[c.id] = st;
+    if (st === 'known') knownCount++; else reviewCount++;
+    save(); updateBadge();
+  }
+  studyIdx++;
+  renderStudyCard();
+}
+
+function studyNext() { studyIdx++; renderStudyCard(); }
+function restartStudy() { studyQueue = buildQueue(); studyIdx = 0; renderStudyCard(); }
+
+/* ── Stats ── */
+function recomputeCounts() {
+  knownCount  = 0; reviewCount = 0;
+  for (const v of Object.values(progress)) {
+    if (v === 'known') knownCount++; else if (v === 'review') reviewCount++;
+  }
+}
+
+function renderStats() {
+  const total  = cards.length;
+  const unseen = total - knownCount - reviewCount;
+  const kPct   = total ? (knownCount  / total * 100) : 0;
+  const rPct   = total ? (reviewCount / total * 100) : 0;
+  document.getElementById('bar-k').style.width    = kPct + '%';
+  document.getElementById('bar-r').style.width    = rPct + '%';
+  document.getElementById('sv-total').textContent  = total;
+  document.getElementById('sv-known').textContent  = knownCount;
+  document.getElementById('sv-review').textContent = reviewCount;
+  document.getElementById('sv-unseen').textContent = unseen;
+}
+
+/* ── Persistence ── */
+function save() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (_) {} }
+
+function updateBadge() {
+  const total = cards.length;
+  document.getElementById('hdr-badge').textContent = total ? `${knownCount} / ${total} known` : '0 known';
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  progress = {}; knownCount = 0; reviewCount = 0;
+  save(); studyQueue = []; studyIdx = 0;
+  updateBadge(); renderStats(); renderBrowse();
+  if (activeTab === 'study') renderStudy();
+}
+
+function h(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Service worker ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('sw.js').catch(() => {})
+  );
+}
+
+init();
+</script>
+</body>
+</html>
+
 
 /* ── Init ── */
 async function init() {
