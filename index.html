@@ -703,29 +703,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-/* ═══════════════════════ INSTALL PROMPT ═══════════════════════ */
-#install-prompt {
-  position:fixed; bottom:calc(var(--pad-bottom)+16px); left:50%;
-  transform:translateX(-50%) translateY(100px);
-  background:rgba(20,30,60,.97); backdrop-filter:blur(16px);
-  border:1px solid rgba(247,201,72,.25); border-radius:16px;
-  padding:14px 18px; display:flex; align-items:center; gap:14px;
-  max-width:min(400px,calc(100vw-32px));
-  box-shadow:0 8px 32px rgba(0,0,0,.5); z-index:500;
-  transition:transform .4s var(--ease); pointer-events:none;
-}
-#install-prompt.show { transform:translateX(-50%) translateY(0); pointer-events:all; }
-.install-icon { font-size:32px; flex-shrink:0; }
-.install-text { flex:1; }
-.install-text strong { display:block; font-size:14px; font-weight:700; margin-bottom:2px; }
-.install-text span { font-size:12px; color:var(--txt2); }
-.install-btns { display:flex; flex-direction:column; gap:6px; }
-.install-yes {
-  background:var(--gold); color:#0a0e2a; font-size:12px; font-weight:800;
-  padding:6px 12px; border-radius:8px;
-}
-.install-no { color:var(--txt3); font-size:12px; padding:4px; }
-
 /* ═══════════════════════ CONFETTI ═══════════════════════ */
 .confetti-piece {
   position:fixed; width:8px; height:8px; border-radius:2px;
@@ -1027,21 +1004,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
       <h3>Multiplayer</h3>
       <p>Up to 4 players share one device. After each clue, every player marks correct or wrong independently. Perfect for game nights!</p>
     </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     INSTALL PROMPT
-══════════════════════════════════════════════════ -->
-<div id="install-prompt">
-  <div class="install-icon">📲</div>
-  <div class="install-text">
-    <strong>Add to Home Screen</strong>
-    <span>Play offline, anytime</span>
-  </div>
-  <div class="install-btns">
-    <button class="install-yes" onclick="installApp()">Install</button>
-    <button class="install-no" onclick="dismissInstall()">Later</button>
   </div>
 </div>
 
@@ -1850,24 +1812,6 @@ document.addEventListener('keydown', e=>{
     if (activeScreen==='screen-final-answer') { endGame(); return; }
   }
 });
-
-/* ═══════════════════════════════════════════════════
-   PWA INSTALL PROMPT
-═══════════════════════════════════════════════════ */
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e=>{
-  e.preventDefault();
-  deferredPrompt = e;
-  setTimeout(()=>document.getElementById('install-prompt').classList.add('show'), 4000);
-});
-function installApp() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; dismissInstall(); });
-}
-function dismissInstall() {
-  document.getElementById('install-prompt').classList.remove('show');
-}
 
 /* ═══════════════════════════════════════════════════
    OFFLINE DETECTION
