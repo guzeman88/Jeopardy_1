@@ -6,5 +6,13 @@
     { "source": "/", "destination": "/study.html" },
     { "source": "/game", "destination": "/index.html" },
     { "source": "/flashcards", "destination": "/flashcards.html" }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
   ]
 }
