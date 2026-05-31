@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background:#0d0d1a">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,6 +10,44 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="J! Study">
   <link rel="apple-touch-icon" href="icons/icon.svg">
+  <!-- Critical: render loading screen on first paint -->
+  <style>
+    html,body{margin:0;padding:0;background:#0d0d1a}
+    #loading{
+      position:fixed;inset:0;z-index:9999;
+      background:#0d0d1a;
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:18px;
+    }
+    .ld-badge{
+      width:80px;height:80px;border-radius:22px;
+      background:linear-gradient(145deg,#f7c948,#d4a800);
+      display:flex;align-items:center;justify-content:center;
+      font-size:2.4rem;font-weight:900;color:#0d0d1a;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;
+      letter-spacing:-.03em;
+      box-shadow:0 8px 32px rgba(247,201,72,.35);
+    }
+    .ld-title{
+      color:#f7c948;
+      font-size:1.4rem;font-weight:900;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;
+      letter-spacing:.04em;
+    }
+    .ld-sub{
+      color:#555570;
+      font-size:.82rem;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;
+    }
+    .spinner{
+      width:32px;height:32px;
+      border:3px solid rgba(247,201,72,.15);
+      border-top-color:#f7c948;
+      border-radius:50%;
+      animation:spin .75s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
   <style>
     :root {
       --bg:   #0d0d1a;
@@ -40,24 +78,6 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
       -webkit-font-smoothing: antialiased;
     }
-
-    /* ── Loading ── */
-    #loading {
-      position: fixed; inset: 0; z-index: 9999;
-      background: var(--bg);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px;
-    }
-    .ld-logo { color: var(--gold); font-size: 1.5rem; font-weight: 900; letter-spacing: .05em; }
-    .ld-sub  { color: var(--txt3); font-size: .85rem; }
-    .spinner {
-      width: 38px; height: 38px;
-      border: 3px solid rgba(247,201,72,.15);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin .75s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── App shell ── */
     #app {
@@ -330,7 +350,8 @@
 <body>
 
 <div id="loading">
-  <div class="ld-logo">Jeopardy! Study</div>
+  <div class="ld-badge">J!</div>
+  <div class="ld-title">Jeopardy! Study</div>
   <div class="spinner"></div>
   <div class="ld-sub" id="ld-sub">Loading study cards…</div>
 </div>
