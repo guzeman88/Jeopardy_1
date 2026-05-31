@@ -3,6 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+// If old SW served this game page at the root URL, kill the SW and go to the study app.
+(function(){
+  var p = window.location.pathname;
+  if (p === '/' || p === '/index.html') {
+    var done = function(){ window.location.replace('/'); };
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        return Promise.all(
+          regs.map(function(r){ return r.unregister(); }).concat(
+            [caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })]
+          )
+        );
+      }).then(done).catch(done);
+    } else { done(); }
+  }
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0a0e2a">
