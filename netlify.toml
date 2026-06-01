@@ -1,0 +1,14 @@
+[[redirects]]
+  from = "/"
+  to = "/study.html"
+  status = 200
+
+[[redirects]]
+  from = "/flashcards"
+  to = "/flashcards.html"
+  status = 200
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

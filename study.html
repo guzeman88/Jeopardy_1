@@ -292,6 +292,8 @@
       border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0;
     }
     .sc-back-clues { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; padding: 12px 18px; }
+    .sc-wc-study { flex-shrink: 0; margin: 6px 12px 2px; border-radius: 8px; overflow: hidden; background: #0d0d1a; }
+    .sc-wc-study canvas { display: block; }
     .sc-more { font-size: .73rem; color: var(--txt3); padding: 8px 0; font-style: italic; }
     .study-actions { display: flex; gap: 8px; margin-top: 12px; flex-shrink: 0; }
     .study-actions .sht-btn { flex: 1; }
@@ -714,6 +716,39 @@ function renderWordCloud(id) {
   canvas.style.display = 'block';
 }
 
+function renderStudyWordCloud(id) {
+  const canvas = document.getElementById('sc-study-wc');
+  const wrap   = canvas ? canvas.parentElement : null;
+  if (!canvas || !wrap) return;
+  if (!assocData || !assocData[id]) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const words   = Object.entries(assocData[id]).sort((a, b) => b[1] - a[1]);
+  const maxFreq = words[0] ? words[0][1] : 1;
+  const W = wrap.offsetWidth || (window.innerWidth - 24);
+  const H = 165;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  const COLORS = ['#f7c948','#22c55e','#06b6d4','#8b5cf6','#f59e0b','#10b981','#60a5fa','#e879f9'];
+  const wf = Math.min(18, Math.max(6, (W / maxFreq) * 0.6));
+  WordCloud(canvas, {
+    list:           words,
+    fontFamily:     '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontWeight:     '800',
+    color:          (w) => COLORS[(w.charCodeAt(0) + w.length) % COLORS.length],
+    backgroundColor: '#0d0d1a',
+    gridSize:       Math.round(8 * (W / 375)),
+    weightFactor:   wf,
+    rotateRatio:    0.25,
+    minSize:        9,
+    drawOutOfBound: false,
+    shuffle:        false,
+    wait:           0,
+  });
+}
+
 function closeSheet() {
   document.getElementById('sheet').classList.remove('open');
   document.body.style.overflow = '';
@@ -817,6 +852,7 @@ function renderStudyCard() {
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term">${h(c.id)}</div>` +
+        `<div class="sc-wc-study"><canvas id="sc-study-wc"></canvas></div>` +
         `<div class="sc-back-clues">` +
           c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
           (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
@@ -837,6 +873,8 @@ function revealCard() {
   if (front) front.style.display = 'none';
   if (back)  back.classList.add('vis');
   if (acts)  acts.style.display  = 'flex';
+  const c = studyQueue[studyIdx];
+  if (c) renderStudyWordCloud(c.id);
 }
 
 function studyMark(st) {
