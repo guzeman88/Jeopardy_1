@@ -32,13 +32,6 @@
       "description": "Browse all study cards",
       "url": "/",
       "icons": [{"src": "icons/icon.svg", "sizes": "any"}]
-    },
-    {
-      "name": "Play Jeopardy!",
-      "short_name": "Game",
-      "description": "Play the quiz game",
-      "url": "/game",
-      "icons": [{"src": "icons/icon.svg", "sizes": "any"}]
     }
   ]
 }
