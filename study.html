@@ -601,7 +601,7 @@ function appendBrowseRows(count, el) {
       `<div class="status-pip${st !== 'unseen' ? ' ' + st : ''}"></div>` +
       `<div class="card-row-body">` +
         `<div class="card-row-term">${h(c.id)}</div>` +
-        `<div class="card-row-meta">${c.total} clues Â· ${c.cats.length} categories</div>` +
+        `<div class="card-row-meta">${c.total} clues · ${c.cats.length} categories</div>` +
       `</div>` +
       `<div class="row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
     row.addEventListener('click', () => openSheet(c.id));
@@ -642,7 +642,7 @@ function openSheet(id) {
   if (!c) return;
   curId = id;
   document.getElementById('sht-term').textContent = c.id;
-  document.getElementById('sht-meta').textContent = `${c.total} clues Â· ${c.cats.length} categories`;
+  document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
   document.getElementById('sht-cats').innerHTML =
     c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
   document.getElementById('sht-body').innerHTML = c.clues.length
@@ -724,8 +724,8 @@ function refreshSheetBtns() {
   const st = curId ? (progress[curId] || 'unseen') : 'unseen';
   const bk = document.getElementById('btn-known');
   const br = document.getElementById('btn-review');
-  bk.textContent = st === 'known'  ? 'âœ“ Known âœ“' : 'âœ“ Known';
-  br.textContent = st === 'review' ? 'â†© Review â†©' : 'â†© Review';
+  bk.textContent = st === 'known'  ? '✓ Known ✓' : '✓ Known';
+  br.textContent = st === 'review' ? '↩ Review ↩' : '↩ Review';
   bk.classList.toggle('is-active', st === 'known');
   br.classList.toggle('is-active', st === 'review');
 }
@@ -781,7 +781,7 @@ function renderStudy() {
   const total = cards.length;
   if (knownCount === total && total > 0) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">ðŸŽ‰</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
+      `<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
     return;
   }
   if (!studyQueue.length || studyIdx >= studyQueue.length) {
@@ -789,7 +789,7 @@ function renderStudy() {
   }
   if (!studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">âœ…</div><div class="splash-title">Nothing left to study</div></div>`;
+      `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
     return;
   }
   renderStudyCard();
@@ -798,7 +798,7 @@ function renderStudy() {
 function renderStudyCard() {
   if (studyIdx >= studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">ðŸ</div><div class="splash-title">Round complete!</div><div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div><button class="splash-btn" onclick="restartStudy()">Study Again</button><button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button></div>`;
+      `<div class="study-splash"><div class="splash-icon">🏁</div><div class="splash-title">Round complete!</div><div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div><button class="splash-btn" onclick="restartStudy()">Study Again</button><button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button></div>`;
     return;
   }
   const c   = studyQueue[studyIdx];
