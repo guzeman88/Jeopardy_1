@@ -475,26 +475,27 @@ let browseList   = [];  // current filtered+sorted list
 let browseEnd    = 0;   // how many rows rendered so far
 let scrollObs    = null;
 
-/* â”€â”€ Init â”€â”€ */
+/* ── Init ── */
+// Phase 2 flag: true once full clue data is merged in
+let fullDataLoaded = false;
+
 async function init() {
   try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
   recomputeCounts();
+
+  // Phase 1: load lean browse index (~315 KB) - shows browse list immediately
   try {
-    document.getElementById('ld-sub').textContent = 'Downloading cardsâ€¦';
-    const r   = await fetch('data/processed/flashcards.json');
-    document.getElementById('ld-sub').textContent = 'Parsingâ€¦';
-    const raw = await r.json();
-    document.getElementById('ld-sub').textContent = 'Ready!';
-    cards = Object.entries(raw).map(([id, d]) => ({
+    const r1   = await fetch('data/processed/flashcards_browse.json');
+    const raw1 = await r1.json();
+    cards = Object.entries(raw1).map(([id, d]) => ({
       id,
-      clues: Array.isArray(d.clues) ? d.clues : [],
-      cats:  Array.isArray(d.categories) ? d.categories : [],
-      total: d.total_clues || (Array.isArray(d.clues) ? d.clues.length : 0)
+      clues: [],
+      cats:  Array.isArray(d.cats) ? d.cats : [],
+      total: d.total || 0
     }));
-    cards.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
+    cards.sort((a, b) => { const la = a.id.toLowerCase(), lb = b.id.toLowerCase(); return la < lb ? -1 : la > lb ? 1 : 0; });
     cardMap = new Map(cards.map(c => [c.id, c]));
 
-    // Show app shell first, then render list in next frame to avoid jank
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display     = 'flex';
     updateBadge();
@@ -502,6 +503,24 @@ async function init() {
     requestAnimationFrame(() => renderBrowse());
   } catch (err) {
     document.getElementById('ld-sub').textContent = 'Failed to load: ' + err.message;
+    return;
+  }
+
+  // Phase 2: load full data in background (clues + study mode)
+  try {
+    const r2   = await fetch('data/processed/flashcards.json');
+    const raw2 = await r2.json();
+    for (const [id, d] of Object.entries(raw2)) {
+      const c = cardMap.get(id);
+      if (c) {
+        c.clues = Array.isArray(d.clues) ? d.clues : [];
+        if (d.total_clues) c.total = d.total_clues;
+      }
+    }
+    fullDataLoaded = true;
+    if (activeTab === 'study') renderStudy();
+  } catch (_) {
+    // Full load failed - browse still works
   }
 }
 
@@ -615,10 +634,11 @@ function openSheet(id) {
   document.getElementById('sht-meta').textContent = `${c.total} clues Â· ${c.cats.length} categories`;
   document.getElementById('sht-cats').innerHTML =
     c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
-  document.getElementById('sht-body').innerHTML =
-    c.clues.map(cl =>
-      `<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`
-    ).join('');
+  document.getElementById('sht-body').innerHTML = c.clues.length
+    ? c.clues.map(cl =>
+        `<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`
+      ).join('')
+    : '<div style="padding:24px;color:#555570;font-size:.9rem;text-align:center">Clues are still loading…<br>Try again in a moment.</div>';
   refreshSheetBtns();
   document.getElementById('sheet').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -680,6 +700,14 @@ function shuffle(arr) {
 }
 
 function renderStudy() {
+  // Show a holding screen if clues haven't loaded yet
+  if (!fullDataLoaded && cards.length > 0) {
+    document.getElementById('study-content').innerHTML =
+      '<div class="study-splash"><div class="splash-icon" style="font-size:2rem">⏳</div>' +
+      '<div class="splash-title">Loading clues…</div>' +
+      '<div class="splash-sub">Study mode needs the full card data. It loads automatically in the background — check back in a few seconds.</div></div>';
+    return;
+  }
   const total = cards.length;
   if (knownCount === total && total > 0) {
     document.getElementById('study-content').innerHTML =

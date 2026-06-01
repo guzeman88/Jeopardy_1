@@ -4,10 +4,11 @@
    lazily on first use so install never fails.
    ========================================================= */
 
-const CACHE = 'jep-study-v3';
+const CACHE = 'jep-study-v4';
 const PRECACHE = [
   '/study.html',
   '/manifest.json',
+  '/data/processed/flashcards_browse.json',
 ];
 
 // Install: pre-cache only small critical files
