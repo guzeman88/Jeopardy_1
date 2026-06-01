@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" style="background:#0d0d1a">
 <head>
   <meta charset="UTF-8">
@@ -79,7 +79,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── App shell ── */
+    /* â”€â”€ App shell â”€â”€ */
     #app {
       display: flex; flex-direction: column;
       height: 100%;
@@ -88,7 +88,7 @@
       padding-right: var(--sr);
     }
 
-    /* ── Header ── */
+    /* â”€â”€ Header â”€â”€ */
     #hdr {
       height: var(--hdr-h);
       background: var(--bg2);
@@ -107,7 +107,7 @@
       white-space: nowrap;
     }
 
-    /* ── Content ── */
+    /* â”€â”€ Content â”€â”€ */
     #content { flex: 1; overflow: hidden; position: relative; }
     .tab-pane {
       position: absolute; inset: 0;
@@ -116,7 +116,7 @@
     }
     .tab-pane.active { display: block; }
 
-    /* ── Bottom nav ── */
+    /* â”€â”€ Bottom nav â”€â”€ */
     #nav {
       display: flex;
       height: calc(var(--nav-h) + var(--sb));
@@ -138,7 +138,7 @@
     .nav-btn.active { color: var(--gold); }
     .nav-btn.active svg { stroke-width: 2.2; }
 
-    /* ── Browse ── */
+    /* â”€â”€ Browse â”€â”€ */
     .browse-bar {
       padding: 10px 12px 8px;
       background: var(--bg2);
@@ -199,7 +199,7 @@
     .row-arrow svg { width: 15px; height: 15px; }
     .empty-state { padding: 48px 24px; text-align: center; color: var(--txt3); font-size: .9rem; line-height: 1.7; }
 
-    /* ── Detail sheet ── */
+    /* â”€â”€ Detail sheet â”€â”€ */
     #sheet { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
     #sheet-bg {
       position: absolute; inset: 0;
@@ -253,7 +253,7 @@
     .sht-known  { background: var(--known); color: #000; }
     .sht-btn.is-active { opacity: .55; }
 
-    /* ── Study tab ── */
+    /* â”€â”€ Study tab â”€â”€ */
     #study-wrap {
       display: flex; flex-direction: column;
       height: 100%; padding: 16px;
@@ -314,7 +314,7 @@
       cursor: pointer; text-decoration: underline;
     }
 
-    /* ── Stats tab ── */
+    /* â”€â”€ Stats tab â”€â”€ */
     .stats-wrap { padding: 20px 16px 32px; }
     .stats-section-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--txt3); margin-bottom: 12px; }
     .stat-bar-wrap { margin: 0 0 22px; }
@@ -353,7 +353,7 @@
   <div class="ld-badge">J!</div>
   <div class="ld-title">Jeopardy! Study</div>
   <div class="spinner"></div>
-  <div class="ld-sub" id="ld-sub">Loading study cards…</div>
+  <div class="ld-sub" id="ld-sub">Loading study cardsâ€¦</div>
 </div>
 
 <div id="app" style="display:none">
@@ -364,16 +364,16 @@
 
   <div id="content">
 
-    <!-- ── Browse ── -->
+    <!-- â”€â”€ Browse â”€â”€ -->
     <div id="tab-browse" class="tab-pane active">
       <div class="browse-bar">
         <div class="search-wrap">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="q" type="search" placeholder="Search answers or categories…" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input id="q" type="search" placeholder="Search answers or categoriesâ€¦" autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
         <select id="sort-sel">
-          <option value="az">A → Z</option>
-          <option value="za">Z → A</option>
+          <option value="az">A â†’ Z</option>
+          <option value="za">Z â†’ A</option>
           <option value="clues">Most Clues</option>
           <option value="unseen">Unseen First</option>
           <option value="known">Known Last</option>
@@ -383,12 +383,12 @@
       <div id="browse-list"></div>
     </div>
 
-    <!-- ── Study ── -->
+    <!-- â”€â”€ Study â”€â”€ -->
     <div id="tab-study" class="tab-pane">
       <div id="study-content" style="height:100%"></div>
     </div>
 
-    <!-- ── Stats ── -->
+    <!-- â”€â”€ Stats â”€â”€ -->
     <div id="tab-stats" class="tab-pane">
       <div class="stats-wrap">
         <div class="stats-section-title">Overall Progress</div>
@@ -405,14 +405,14 @@
           </div>
         </div>
         <div class="stat-cards">
-          <div class="stat-card"><div class="stat-card-label">Total</div><div class="stat-card-val gold" id="sv-total">—</div></div>
-          <div class="stat-card"><div class="stat-card-label">Unseen</div><div class="stat-card-val" id="sv-unseen">—</div></div>
-          <div class="stat-card"><div class="stat-card-label">Known</div><div class="stat-card-val green" id="sv-known">—</div></div>
-          <div class="stat-card"><div class="stat-card-label">Reviewing</div><div class="stat-card-val amber" id="sv-review">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Total</div><div class="stat-card-val gold" id="sv-total">â€”</div></div>
+          <div class="stat-card"><div class="stat-card-label">Unseen</div><div class="stat-card-val" id="sv-unseen">â€”</div></div>
+          <div class="stat-card"><div class="stat-card-label">Known</div><div class="stat-card-val green" id="sv-known">â€”</div></div>
+          <div class="stat-card"><div class="stat-card-label">Reviewing</div><div class="stat-card-val amber" id="sv-review">â€”</div></div>
         </div>
         <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
         <div class="game-link-row">
-          Looking for the game? <a class="game-link" href="game">Play Jeopardy! →</a>
+          Looking for the game? <a class="game-link" href="game">Play Jeopardy! â†’</a>
         </div>
       </div>
     </div>
@@ -448,8 +448,8 @@
     <div class="sheet-body" id="sht-body"></div>
     <div class="sheet-foot">
       <button class="sht-btn sht-close" onclick="closeSheet()">Close</button>
-      <button class="sht-btn sht-review" id="btn-review" onclick="setStatus('review')">↩ Review</button>
-      <button class="sht-btn sht-known"  id="btn-known"  onclick="setStatus('known')">✓ Known</button>
+      <button class="sht-btn sht-review" id="btn-review" onclick="setStatus('review')">â†© Review</button>
+      <button class="sht-btn sht-known"  id="btn-known"  onclick="setStatus('known')">âœ“ Known</button>
     </div>
   </div>
 </div>
@@ -461,7 +461,7 @@ const PKEY = 'jep-study-v1';
 const PAGE = 60; // rows per render batch
 
 let cards      = [];
-let cardMap    = new Map();  // id → card, O(1) lookup
+let cardMap    = new Map();  // id â†’ card, O(1) lookup
 let progress   = {};
 let knownCount = 0;
 let reviewCount = 0;
@@ -475,14 +475,14 @@ let browseList   = [];  // current filtered+sorted list
 let browseEnd    = 0;   // how many rows rendered so far
 let scrollObs    = null;
 
-/* ── Init ── */
+/* â”€â”€ Init â”€â”€ */
 async function init() {
   try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
   recomputeCounts();
   try {
-    document.getElementById('ld-sub').textContent = 'Downloading cards…';
+    document.getElementById('ld-sub').textContent = 'Downloading cardsâ€¦';
     const r   = await fetch('data/processed/flashcards.json');
-    document.getElementById('ld-sub').textContent = 'Parsing…';
+    document.getElementById('ld-sub').textContent = 'Parsingâ€¦';
     const raw = await r.json();
     document.getElementById('ld-sub').textContent = 'Ready!';
     cards = Object.entries(raw).map(([id, d]) => ({
@@ -505,7 +505,7 @@ async function init() {
   }
 }
 
-/* ── Tabs ── */
+/* â”€â”€ Tabs â”€â”€ */
 function showTab(name) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -516,7 +516,7 @@ function showTab(name) {
   if (name === 'stats') renderStats();
 }
 
-/* ── Browse: build sorted/filtered list ── */
+/* â”€â”€ Browse: build sorted/filtered list â”€â”€ */
 function getList() {
   const q    = (document.getElementById('q').value || '').trim().toLowerCase();
   const sort = document.getElementById('sort-sel').value;
@@ -538,7 +538,7 @@ function getList() {
   return list;
 }
 
-/* ── Browse: render (incremental) ── */
+/* â”€â”€ Browse: render (incremental) â”€â”€ */
 function renderBrowse() {
   browseList = getList();
   browseEnd  = 0;
@@ -571,7 +571,7 @@ function appendBrowseRows(count, el) {
       `<div class="status-pip${st !== 'unseen' ? ' ' + st : ''}"></div>` +
       `<div class="card-row-body">` +
         `<div class="card-row-term">${h(c.id)}</div>` +
-        `<div class="card-row-meta">${c.total} clues · ${c.cats.length} categories</div>` +
+        `<div class="card-row-meta">${c.total} clues Â· ${c.cats.length} categories</div>` +
       `</div>` +
       `<div class="row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
     row.addEventListener('click', () => openSheet(c.id));
@@ -606,13 +606,13 @@ function onSearchInput() {
 document.getElementById('q').addEventListener('input', onSearchInput);
 document.getElementById('sort-sel').addEventListener('change', renderBrowse);
 
-/* ── Detail sheet ── */
+/* â”€â”€ Detail sheet â”€â”€ */
 function openSheet(id) {
   const c = cardMap.get(id);
   if (!c) return;
   curId = id;
   document.getElementById('sht-term').textContent = c.id;
-  document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
+  document.getElementById('sht-meta').textContent = `${c.total} clues Â· ${c.cats.length} categories`;
   document.getElementById('sht-cats').innerHTML =
     c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
   document.getElementById('sht-body').innerHTML =
@@ -634,8 +634,8 @@ function refreshSheetBtns() {
   const st = curId ? (progress[curId] || 'unseen') : 'unseen';
   const bk = document.getElementById('btn-known');
   const br = document.getElementById('btn-review');
-  bk.textContent = st === 'known'  ? '✓ Known ✓' : '✓ Known';
-  br.textContent = st === 'review' ? '↩ Review ↩' : '↩ Review';
+  bk.textContent = st === 'known'  ? 'âœ“ Known âœ“' : 'âœ“ Known';
+  br.textContent = st === 'review' ? 'â†© Review â†©' : 'â†© Review';
   bk.classList.toggle('is-active', st === 'known');
   br.classList.toggle('is-active', st === 'review');
 }
@@ -664,7 +664,7 @@ function setStatus(st) {
   }
 }
 
-/* ── Study mode ── */
+/* â”€â”€ Study mode â”€â”€ */
 function buildQueue() {
   const review = cards.filter(c => progress[c.id] === 'review');
   const unseen = cards.filter(c => !progress[c.id]);
@@ -683,7 +683,7 @@ function renderStudy() {
   const total = cards.length;
   if (knownCount === total && total > 0) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
+      `<div class="study-splash"><div class="splash-icon">ðŸŽ‰</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
     return;
   }
   if (!studyQueue.length || studyIdx >= studyQueue.length) {
@@ -691,7 +691,7 @@ function renderStudy() {
   }
   if (!studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
+      `<div class="study-splash"><div class="splash-icon">âœ…</div><div class="splash-title">Nothing left to study</div></div>`;
     return;
   }
   renderStudyCard();
@@ -700,7 +700,7 @@ function renderStudy() {
 function renderStudyCard() {
   if (studyIdx >= studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">🏁</div><div class="splash-title">Round complete!</div><div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div><button class="splash-btn" onclick="restartStudy()">Study Again</button><button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button></div>`;
+      `<div class="study-splash"><div class="splash-icon">ðŸ</div><div class="splash-title">Round complete!</div><div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div><button class="splash-btn" onclick="restartStudy()">Study Again</button><button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button></div>`;
     return;
   }
   const c   = studyQueue[studyIdx];
@@ -709,7 +709,7 @@ function renderStudyCard() {
   document.getElementById('study-content').innerHTML =
     `<div id="study-wrap">` +
     `<div class="study-prog-bar"><div class="study-prog-fill" style="width:${pct}%"></div></div>` +
-    `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
+    `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` Â· ${c.total} clues` : ''}</div>` +
     `<div class="study-card">` +
       `<div class="sc-front" id="sc-front">` +
         `<div class="sc-label">Answer</div>` +
@@ -721,14 +721,14 @@ function renderStudyCard() {
         `<div class="sc-back-term">${h(c.id)}</div>` +
         `<div class="sc-back-clues">` +
           c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
-          (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
+          (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more â€” open in Browse for full list</div>`:'') +
         `</div>` +
       `</div>` +
     `</div>` +
     `<div class="study-actions" id="study-acts" style="display:none">` +
       `<button class="sht-btn btn-skip" onclick="studyNext()">Skip</button>` +
-      `<button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>` +
-      `<button class="sht-btn sht-known" onclick="studyMark('known')">✓ Known</button>` +
+      `<button class="sht-btn sht-review" onclick="studyMark('review')">â†© Review</button>` +
+      `<button class="sht-btn sht-known" onclick="studyMark('known')">âœ“ Known</button>` +
     `</div></div>`;
 }
 
@@ -757,7 +757,7 @@ function studyMark(st) {
 function studyNext() { studyIdx++; renderStudyCard(); }
 function restartStudy() { studyQueue = buildQueue(); studyIdx = 0; renderStudyCard(); }
 
-/* ── Stats ── */
+/* â”€â”€ Stats â”€â”€ */
 function recomputeCounts() {
   knownCount  = 0; reviewCount = 0;
   for (const v of Object.values(progress)) {
@@ -778,7 +778,7 @@ function renderStats() {
   document.getElementById('sv-unseen').textContent = unseen;
 }
 
-/* ── Persistence ── */
+/* â”€â”€ Persistence â”€â”€ */
 function save() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (_) {} }
 
 function updateBadge() {
@@ -798,311 +798,7 @@ function h(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ── Service worker ── */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () =>
-    navigator.serviceWorker.register('sw.js').catch(() => {})
-  );
-}
-
-init();
-</script>
-</body>
-</html>
-
-
-/* ── Init ── */
-async function init() {
-  try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
-  try {
-    const r   = await fetch('data/processed/flashcards.json');
-    const raw = await r.json();
-    cards = Object.entries(raw).map(([id, d]) => ({
-      id,
-      clues: Array.isArray(d.clues) ? d.clues : [],
-      cats:  Array.isArray(d.categories) ? d.categories : [],
-      total: d.total_clues || (Array.isArray(d.clues) ? d.clues.length : 0)
-    }));
-    cards.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display     = 'flex';
-    renderBrowse();
-    renderStats();
-    updateBadge();
-  } catch (err) {
-    document.getElementById('ld-sub').textContent = 'Failed to load data. ' + err.message;
-  }
-}
-
-/* ── Tabs ── */
-function showTab(name) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
-  activeTab = name;
-  if (name === 'study') renderStudy();
-  if (name === 'stats') renderStats();
-}
-
-/* ── Browse ── */
-function getList() {
-  const q    = (document.getElementById('q').value || '').trim().toLowerCase();
-  const sort = document.getElementById('sort-sel').value;
-  let list   = cards.slice();
-  if (q) {
-    list = list.filter(c =>
-      c.id.toLowerCase().includes(q) ||
-      c.cats.some(cat => cat.toLowerCase().includes(q))
-    );
-  }
-  const ORDER = {unseen: 0, review: 1, known: 2};
-  if      (sort === 'az')     list.sort((a, b) => a.id.localeCompare(b.id, undefined, {sensitivity:'base'}));
-  else if (sort === 'za')     list.sort((a, b) => b.id.localeCompare(a.id, undefined, {sensitivity:'base'}));
-  else if (sort === 'clues')  list.sort((a, b) => b.total - a.total);
-  else if (sort === 'unseen') list.sort((a, b) => {
-    const oa = ORDER[progress[a.id] || 'unseen'];
-    const ob = ORDER[progress[b.id] || 'unseen'];
-    return oa - ob || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
-  });
-  else if (sort === 'known') list.sort((a, b) => {
-    const oa = ORDER[progress[a.id] || 'unseen'];
-    const ob = ORDER[progress[b.id] || 'unseen'];
-    return ob - oa || a.id.localeCompare(b.id, undefined, {sensitivity:'base'});
-  });
-  return list;
-}
-
-function renderBrowse() {
-  const list = getList();
-  document.getElementById('browse-meta').textContent = `${list.length.toLocaleString()} of ${cards.length.toLocaleString()} cards`;
-  if (!list.length) {
-    document.getElementById('browse-list').innerHTML = '<div class="empty-state">No cards match your search.</div>';
-    return;
-  }
-  const frag = document.createDocumentFragment();
-  for (const c of list) {
-    const st  = progress[c.id] || 'unseen';
-    const row = document.createElement('div');
-    row.className = 'card-row';
-    row.dataset.id = c.id;
-    row.innerHTML = `
-      <div class="status-pip ${st === 'unseen' ? '' : st}"></div>
-      <div class="card-row-body">
-        <div class="card-row-term">${h(c.id)}</div>
-        <div class="card-row-meta">${c.total} clues · ${c.cats.length} categories</div>
-      </div>
-      <div class="row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
-    `;
-    row.addEventListener('click', () => openSheet(c.id));
-    frag.appendChild(row);
-  }
-  const el = document.getElementById('browse-list');
-  el.innerHTML = '';
-  el.appendChild(frag);
-}
-
-document.getElementById('q').addEventListener('input', renderBrowse);
-document.getElementById('sort-sel').addEventListener('change', renderBrowse);
-
-/* ── Detail sheet ── */
-function openSheet(id) {
-  const c = cards.find(x => x.id === id);
-  if (!c) return;
-  curId = id;
-  document.getElementById('sht-term').textContent = c.id;
-  document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
-  document.getElementById('sht-cats').innerHTML = c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
-  document.getElementById('sht-body').innerHTML = c.clues.map(cl => `
-    <div class="clue-block">
-      <div class="clue-cat">${h(cl.cat)}</div>
-      <div class="clue-txt">${h(cl.text)}</div>
-    </div>
-  `).join('');
-  refreshSheetBtns();
-  document.getElementById('sheet').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeSheet() {
-  document.getElementById('sheet').classList.remove('open');
-  document.body.style.overflow = '';
-  curId = null;
-}
-
-function refreshSheetBtns() {
-  const st = curId ? (progress[curId] || 'unseen') : 'unseen';
-  const bk = document.getElementById('btn-known');
-  const br = document.getElementById('btn-review');
-  bk.textContent = st === 'known'  ? '✓ Known ✓' : '✓ Known';
-  br.textContent = st === 'review' ? '↩ Review ↩' : '↩ Review';
-  bk.classList.toggle('is-active', st === 'known');
-  br.classList.toggle('is-active', st === 'review');
-}
-
-function setStatus(st) {
-  if (!curId) return;
-  if (progress[curId] === st) delete progress[curId];
-  else progress[curId] = st;
-  save();
-  refreshSheetBtns();
-  updateBadge();
-  renderStats();
-  const row = document.querySelector(`#browse-list .card-row[data-id="${CSS.escape(curId)}"]`);
-  if (row) {
-    const pip  = row.querySelector('.status-pip');
-    const newSt = progress[curId] || 'unseen';
-    pip.className = 'status-pip' + (newSt !== 'unseen' ? ' ' + newSt : '');
-  }
-}
-
-/* ── Study mode ── */
-function buildQueue() {
-  const review = cards.filter(c => progress[c.id] === 'review');
-  const unseen = cards.filter(c => !progress[c.id]);
-  shuffle(review); shuffle(unseen);
-  return [...review, ...unseen];
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = 0 | (Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-function renderStudy() {
-  const known = Object.values(progress).filter(v => v === 'known').length;
-  const total = cards.length;
-  if (known === total && total > 0) {
-    document.getElementById('study-content').innerHTML = `
-      <div class="study-splash">
-        <div class="splash-icon">🎉</div>
-        <div class="splash-title">All ${total} cards known!</div>
-        <div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div>
-        <button class="splash-btn" onclick="showTab('stats')">View Progress</button>
-      </div>`;
-    return;
-  }
-  if (!studyQueue.length || studyIdx >= studyQueue.length) {
-    studyQueue = buildQueue(); studyIdx = 0;
-  }
-  if (!studyQueue.length) {
-    document.getElementById('study-content').innerHTML = `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
-    return;
-  }
-  renderStudyCard();
-}
-
-function renderStudyCard() {
-  if (studyIdx >= studyQueue.length) {
-    document.getElementById('study-content').innerHTML = `
-      <div class="study-splash">
-        <div class="splash-icon">🏁</div>
-        <div class="splash-title">Round complete!</div>
-        <div class="splash-sub">You went through all ${studyQueue.length} cards in this session.</div>
-        <button class="splash-btn" onclick="restartStudy()">Study Again</button>
-        <button class="splash-btn-sec" onclick="showTab('stats')">View Progress</button>
-      </div>`;
-    return;
-  }
-  const c   = studyQueue[studyIdx];
-  const tot = studyQueue.length;
-  const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
-  document.getElementById('study-content').innerHTML = `
-    <div id="study-wrap">
-      <div class="study-prog-bar">
-        <div class="study-prog-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>
-      <div class="study-card">
-        <div class="sc-front" id="sc-front">
-          <div class="sc-label">Answer</div>
-          <div class="sc-term">${h(c.id)}</div>
-          <div class="sc-cats">
-            ${c.cats.slice(0, 5).map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('')}
-            ${c.cats.length > 5 ? `<span class="cat-chip">+${c.cats.length - 5} more</span>` : ''}
-          </div>
-          <button class="sc-reveal" onclick="revealCard()">Reveal Clues</button>
-        </div>
-        <div class="sc-back" id="sc-back">
-          <div class="sc-back-term">${h(c.id)}</div>
-          <div class="sc-back-clues">
-            ${c.clues.slice(0, 10).map(cl => `
-              <div class="clue-block">
-                <div class="clue-cat">${h(cl.cat)}</div>
-                <div class="clue-txt">${h(cl.text)}</div>
-              </div>
-            `).join('')}
-            ${c.clues.length > 10 ? `<div class="sc-more">+${c.clues.length - 10} more — open in Browse for full list</div>` : ''}
-          </div>
-        </div>
-      </div>
-      <div class="study-actions" id="study-acts" style="display:none">
-        <button class="sht-btn btn-skip"   onclick="studyNext()">Skip</button>
-        <button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>
-        <button class="sht-btn sht-known"  onclick="studyMark('known')">✓ Known</button>
-      </div>
-    </div>`;
-}
-
-function revealCard() {
-  const front = document.getElementById('sc-front');
-  const back  = document.getElementById('sc-back');
-  const acts  = document.getElementById('study-acts');
-  if (front) front.style.display = 'none';
-  if (back)  back.classList.add('vis');
-  if (acts)  acts.style.display  = 'flex';
-}
-
-function studyMark(st) {
-  const c = studyQueue[studyIdx];
-  if (c) { progress[c.id] = st; save(); updateBadge(); }
-  studyIdx++;
-  renderStudyCard();
-}
-
-function studyNext() { studyIdx++; renderStudyCard(); }
-
-function restartStudy() { studyQueue = buildQueue(); studyIdx = 0; renderStudyCard(); }
-
-/* ── Stats ── */
-function renderStats() {
-  const total  = cards.length;
-  const known  = cards.filter(c => progress[c.id] === 'known').length;
-  const review = cards.filter(c => progress[c.id] === 'review').length;
-  const unseen = total - known - review;
-  const kPct   = total ? (known  / total * 100) : 0;
-  const rPct   = total ? (review / total * 100) : 0;
-  document.getElementById('bar-k').style.width    = kPct + '%';
-  document.getElementById('bar-r').style.width    = rPct + '%';
-  document.getElementById('sv-total').textContent  = total;
-  document.getElementById('sv-known').textContent  = known;
-  document.getElementById('sv-review').textContent = review;
-  document.getElementById('sv-unseen').textContent = unseen;
-}
-
-/* ── Persistence ── */
-function save() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (_) {} }
-
-function updateBadge() {
-  const known = Object.values(progress).filter(v => v === 'known').length;
-  const total = cards.length;
-  document.getElementById('hdr-badge').textContent = total ? `${known} / ${total} known` : '0 known';
-}
-
-function resetProgress() {
-  if (!confirm('Reset all progress? This cannot be undone.')) return;
-  progress = {}; save(); studyQueue = []; studyIdx = 0;
-  updateBadge(); renderStats(); renderBrowse();
-  if (activeTab === 'study') renderStudy();
-}
-
-function h(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ── Service worker ── */
+/* â”€â”€ Service worker â”€â”€ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () =>
     navigator.serviceWorker.register('sw.js').catch(() => {})
