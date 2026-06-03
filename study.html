@@ -389,6 +389,11 @@
       <div id="study-content" style="height:100%"></div>
     </div>
 
+    <!-- ── Play ── -->
+    <div id="tab-play" class="tab-pane">
+      <div id="play-content" style="height:100%"></div>
+    </div>
+
     <!-- ── Stats ── -->
     <div id="tab-stats" class="tab-pane">
       <div class="stats-wrap">
@@ -425,6 +430,10 @@
     <button class="nav-btn" id="nav-study" onclick="showTab('study')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="3"/><line x1="9" y1="21" x2="15" y2="21"/><line x1="12" y1="18" x2="12" y2="21"/></svg>
       Study
+    </button>
+    <button class="nav-btn" id="nav-play" onclick="showTab('play')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Play
     </button>
     <button class="nav-btn" id="nav-stats" onclick="showTab('stats')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
@@ -532,6 +541,7 @@ function showTab(name) {
   document.getElementById('nav-' + name).classList.add('active');
   activeTab = name;
   if (name === 'study') renderStudy();
+  if (name === 'play')  renderPlay();
   if (name === 'stats') renderStats();
 }
 
@@ -854,6 +864,91 @@ function studyMark(st) {
 
 function studyNext() { studyIdx++; renderStudyCard(); }
 function restartStudy() { studyQueue = buildQueue(); studyIdx = 0; renderStudyCard(); }
+
+/* ── Play ── */
+var playPool = [];
+var playIdx  = 0;
+
+function buildPlayPool() {
+  playPool = [];
+  cards.forEach(function(c) {
+    c.clues.forEach(function(cl) {
+      playPool.push({answer: c.id, category: cl.cat, clue: cl.text});
+    });
+  });
+  shuffle(playPool);
+  playIdx = 0;
+}
+
+function renderPlay() {
+  if (!fullDataLoaded) {
+    document.getElementById('play-content').innerHTML =
+      '<div class="study-splash"><div class="splash-icon" style="font-size:2rem">&#x23F3;</div>' +
+      '<div class="splash-title">Loading clues…</div>' +
+      '<div class="splash-sub">Play mode needs the full card data. It loads automatically — check back in a few seconds.</div></div>';
+    return;
+  }
+  if (!playPool.length) buildPlayPool();
+  if (playIdx >= playPool.length) {
+    buildPlayPool();
+  }
+  renderPlayCard();
+}
+
+function renderPlayCard() {
+  var item = playPool[playIdx];
+  var tot  = playPool.length;
+  var pct  = tot > 0 ? (playIdx / tot * 100).toFixed(1) : 0;
+  document.getElementById('play-content').innerHTML =
+    '<div id="study-wrap">' +
+    '<div class="study-prog-bar"><div class="study-prog-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="study-counter">' + (playIdx + 1) + ' / ' + tot + '</div>' +
+    '<div class="study-card">' +
+      '<div class="sc-front" id="play-front">' +
+        '<div class="sc-label" style="margin-bottom:12px">' + h(item.category) + '</div>' +
+        '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:0 8px;font-size:1.05rem;color:var(--txt);line-height:1.5;text-align:center">' + h(item.clue) + '</div>' +
+        '<button class="sc-reveal" onclick="revealPlayCard()">Reveal Answer</button>' +
+      '</div>' +
+      '<div class="sc-back" id="play-back">' +
+        '<div style="font-size:1.9rem;font-weight:900;color:var(--gold);text-align:center;padding:20px 18px 8px">' + h(item.answer) + '</div>' +
+        '<div class="sc-wc-study" style="width:100%"><img id="play-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>' +
+        '<div style="padding:6px 16px 4px;font-size:.72rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em">' + h(item.category) + '</div>' +
+        '<div style="padding:0 16px 16px;font-size:.9rem;color:var(--txt2);line-height:1.5">' + h(item.clue) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="study-actions" id="play-acts" style="display:none">' +
+      '<button class="sht-btn btn-skip" onclick="playNext()">Skip</button>' +
+      '<button class="sht-btn sht-review" onclick="playMark(\'review\')">&#x21A9; Review</button>' +
+      '<button class="sht-btn sht-known" onclick="playMark(\'known\')">&#x2713; Known</button>' +
+    '</div></div>';
+}
+
+function revealPlayCard() {
+  var front = document.getElementById('play-front');
+  var back  = document.getElementById('play-back');
+  var acts  = document.getElementById('play-acts');
+  if (front) front.style.display = 'none';
+  if (back)  back.classList.add('vis');
+  if (acts)  acts.style.display  = 'flex';
+  var item = playPool[playIdx];
+  var img  = document.getElementById('play-wc');
+  if (img && item) { img.src = '/output/cards/answers/' + safeFilename(item.answer) + '.jpg?v=1'; img.alt = item.answer; }
+}
+
+function playNext() { playIdx++; renderPlayCard(); }
+
+function playMark(st) {
+  var item = playPool[playIdx];
+  if (item) {
+    var prev = progress[item.answer];
+    if (prev === 'known') knownCount--; else if (prev === 'review') reviewCount--;
+    progress[item.answer] = st;
+    if (st === 'known') knownCount++; else reviewCount++;
+    save(); updateBadge();
+  }
+  playIdx++;
+  renderPlayCard();
+}
 
 /* ── Stats ── */
 function recomputeCounts() {
