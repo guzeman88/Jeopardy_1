@@ -818,8 +818,7 @@ function renderStudyCard() {
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term" style="font-size:1.9rem;text-align:center;padding:24px 18px 14px;color:var(--gold);font-weight:900">${h(c.id)}</div>` +
         `<div class="sc-back-clues">` +
-          c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
-          (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
+          c.clues.map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
         `</div>` +
       `</div>` +
     `</div>` +
