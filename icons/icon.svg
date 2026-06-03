@@ -12,12 +12,10 @@
   </defs>
 
   <rect width="512" height="512" rx="92" fill="url(#bg)"/>
-  <rect x="6" y="6" width="500" height="500" rx="88" fill="none" stroke="rgba(247,201,72,0.3)" stroke-width="5"/>
 
-  <!-- Nudge x to the right slightly to leave room for the left serif of the italic J -->
-  <text x="270" y="256"
+  <text x="256" y="256"
         font-family="Georgia,'Times New Roman',serif"
-        font-size="260" font-weight="bold" font-style="italic"
+        font-size="240" font-weight="bold" font-style="italic"
         text-anchor="middle" dominant-baseline="central"
         fill="url(#gold)">J!</text>
 </svg>
