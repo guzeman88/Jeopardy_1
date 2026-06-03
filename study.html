@@ -826,7 +826,7 @@ function renderStudyCard() {
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term" style="font-size:1.9rem;text-align:center;padding:24px 18px 14px;color:var(--gold);font-weight:900">${h(c.id)}</div>` +
-        `<div class="sc-wc-study"><img id="sc-study-wc-back" alt="" style="width:100%;display:block"></div>` +
+        `<div class="sc-wc-study"><img id="sc-study-wc-back" alt="" style="width:100%;display:block;cursor:pointer"></div>` +
         `<div class="sc-back-clues">` +
           c.clues.map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
         `</div>` +
@@ -848,7 +848,11 @@ function revealCard() {
   if (acts)  acts.style.display  = 'flex';
   var c = studyQueue[studyIdx];
   var img = document.getElementById('sc-study-wc-back');
-  if (img && c) { img.src = '/output/cards/answers/' + safeFilename(c.id) + '.jpg?v=1'; img.alt = c.id; }
+  if (img && c) {
+    img.src = '/output/cards/answers/' + safeFilename(c.id) + '.jpg?v=1';
+    img.alt = c.id;
+    img.onclick = function(e) { e.stopPropagation(); openSheet(c.id); };
+  }
 }
 
 function studyMark(st) {
@@ -916,7 +920,7 @@ function renderPlayCard() {
       '</div>' +
       '<div class="sc-back" id="play-back">' +
         '<div class="sc-back-term" style="font-size:1.9rem;text-align:center;padding:24px 18px 14px;color:var(--gold);font-weight:900">' + h(item.answer) + '</div>' +
-        '<div class="sc-wc-study"><img id="play-wc" alt="" style="width:100%;display:block"></div>' +
+        '<div class="sc-wc-study"><img id="play-wc" alt="" style="width:100%;display:block;cursor:pointer"></div>' +
         '<div class="sc-back-clues">' +
           '<div class="clue-block"><div class="clue-cat">' + h(item.category) + '</div><div class="clue-txt">' + h(item.clue) + '</div></div>' +
         '</div>' +
@@ -937,7 +941,11 @@ function revealPlayCard() {
   if (acts)  acts.style.display  = 'flex';
   var item = playPool[playIdx];
   var img  = document.getElementById('play-wc');
-  if (img && item) { img.src = '/output/cards/answers/' + safeFilename(item.answer) + '.jpg?v=1'; img.alt = item.answer; }
+  if (img && item) {
+    img.src = '/output/cards/answers/' + safeFilename(item.answer) + '.jpg?v=1';
+    img.alt = item.answer;
+    img.onclick = function(e) { e.stopPropagation(); openSheet(item.answer); };
+  }
 }
 
 function playNext() { playIdx++; renderPlayCard(); }
