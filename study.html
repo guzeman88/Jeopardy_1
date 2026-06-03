@@ -831,9 +831,8 @@ function renderStudyCard() {
       `</div>` +
     `</div>` +
     `<div class="study-actions" id="study-acts" style="display:none">` +
-      `<button class="sht-btn btn-skip" onclick="studyNext()">Skip</button>` +
-      `<button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>` +
-      `<button class="sht-btn sht-known" onclick="studyMark('known')">✓ Known</button>` +
+      `<button class="sht-btn sht-review" onclick="studyMark('review')">Not Quite</button>` +
+      `<button class="sht-btn sht-known" onclick="studyMark('known')">Got It</button>` +
     `</div></div>`;
   requestAnimationFrame(function() { showStudyWordCloud(c.id); });
 }
@@ -918,9 +917,8 @@ function renderPlayCard() {
       '</div>' +
     '</div>' +
     '<div class="study-actions" id="play-acts" style="display:none">' +
-      '<button class="sht-btn btn-skip" onclick="playNext()">Skip</button>' +
-      '<button class="sht-btn sht-review" onclick="playMark(\'review\')">&#x21A9; Review</button>' +
-      '<button class="sht-btn sht-known" onclick="playMark(\'known\')">&#x2713; Known</button>' +
+      '<button class="sht-btn sht-review" onclick="playMark(\'review\')">Not Quite</button>' +
+      '<button class="sht-btn sht-known" onclick="playMark(\'known\')">Got It</button>' +
     '</div></div>';
 }
 
