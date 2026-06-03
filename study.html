@@ -444,7 +444,7 @@
       <div class="sheet-submeta" id="sht-meta"></div>
       <div class="cats-wrap" id="sht-cats"></div>
     </div>
-    <div id="wc-wrap"><img id="wc-img" src="" alt="" style="width:100%;display:block;border-radius:0 0 8px 8px"></div>
+    <div id="wc-wrap"><img id="wc-img" alt="" style="width:100%;display:block;border-radius:0 0 8px 8px"></div>
     <div class="sheet-body" id="sht-body"></div>
     <div class="sheet-foot">
       <button class="sht-btn sht-close" onclick="closeSheet()">Close</button>
@@ -656,7 +656,7 @@ function showWordCloud(id) {
   var wrap = document.getElementById('wc-wrap');
   var img  = document.getElementById('wc-img');
   if (!wrap || !img) return;
-  img.src = 'output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg';
   img.alt = id;
   wrap.style.display = '';
 }
@@ -665,7 +665,7 @@ function showStudyWordCloud(id) {
   var img  = document.getElementById('sc-study-wc');
   var wrap = img ? img.parentElement : null;
   if (!img || !wrap) return;
-  img.src = 'output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg';
   img.alt = id;
   wrap.style.display = '';
 }
@@ -773,7 +773,7 @@ function renderStudyCard() {
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term">${h(c.id)}</div>` +
-        `<div class="sc-wc-study"><img id="sc-study-wc" src="" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
+        `<div class="sc-wc-study"><img id="sc-study-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
         `<div class="sc-back-clues">` +
           c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
           (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
