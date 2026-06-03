@@ -273,7 +273,7 @@
     }
     .sc-front {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 32px 24px; text-align: center;
+      align-items: center; justify-content: center; text-align: center;
     }
     .sc-label { font-size: .7rem; font-weight: 700; color: var(--txt3); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
     .sc-term  { font-size: 1.9rem; font-weight: 900; color: var(--gold); line-height: 1.2; }
@@ -813,7 +813,7 @@ function renderStudyCard() {
     `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
     `<div class="study-card">` +
       `<div class="sc-front" id="sc-front">` +
-        `<div class="sc-wc-study" style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;padding:8px"><img id="sc-study-wc" alt="" style="max-width:100%;max-height:100%;display:block;border-radius:8px;object-fit:contain"></div>` +
+        `<div class="sc-wc-study" style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0"><img id="sc-study-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
         `<button class="sc-reveal" onclick="revealCard()">Reveal Answer</button>` +
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
