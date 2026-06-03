@@ -392,7 +392,7 @@
 
     <!-- ── Play ── -->
     <div id="tab-play" class="tab-pane">
-      <div id="play-content" style="height:100%"></div>
+      <div id="play-content" style="height:100%;overflow-x:hidden"></div>
     </div>
 
     <!-- ── Stats ── -->
@@ -905,9 +905,9 @@ function renderPlayCard() {
     '<div id="study-wrap">' +
     '<div class="study-card" style="padding-top:8px">' +
       '<div class="sc-front" id="play-front">' +
-        '<div style="display:flex;flex-direction:column;align-items:center;width:100%">' +
+        '<div style="display:flex;flex-direction:column;align-items:stretch;width:100%;padding:0 16px">' +
           '<div style="font-size:.68rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;text-align:center">' + h(item.category) + '</div>' +
-          '<div style="background:linear-gradient(160deg, #1a1a38 0%, #14142b 100%);border:1px solid rgba(247,201,72,.2);border-radius:16px;padding:26px 20px;width:calc(100% - 32px);max-width:440px;text-align:center;position:relative">' +
+          '<div style="background:linear-gradient(160deg, #1a1a38 0%, #14142b 100%);border:1px solid rgba(247,201,72,.2);border-radius:16px;padding:26px 20px;max-width:440px;align-self:center;width:100%;text-align:center;position:relative;box-sizing:border-box">' +
             '<div style="position:absolute;top:-10px;left:24px;background:var(--gold);color:#0d0d1a;font-size:.68rem;font-weight:900;padding:3px 12px;border-radius:10px;letter-spacing:.06em">CLUE</div>' +
             '<div style="font-size:1.1rem;color:#e8e8f0;line-height:1.6;font-weight:500;margin-top:4px">' + h(item.clue) + '</div>' +
           '</div>' +
@@ -999,7 +999,7 @@ function h(s) {
 /* ── Service worker ── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () =>
-    navigator.serviceWorker.register('sw.js?v=9').catch(() => {})
+    navigator.serviceWorker.register('sw.js?v=10').catch(() => {})
   );
 }
 
