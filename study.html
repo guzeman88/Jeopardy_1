@@ -905,8 +905,13 @@ function renderPlayCard() {
     '<div class="study-counter">' + (playIdx + 1) + ' / ' + tot + '</div>' +
     '<div class="study-card">' +
       '<div class="sc-front" id="play-front">' +
-        '<div class="sc-label" style="margin-bottom:12px">' + h(item.category) + '</div>' +
-        '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:0 8px;font-size:1.05rem;color:var(--txt);line-height:1.5;text-align:center">' + h(item.clue) + '</div>' +
+        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:0 20px">' +
+          '<div style="font-size:.68rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:18px;text-align:center">' + h(item.category) + '</div>' +
+          '<div style="background:linear-gradient(160deg, #1a1a38 0%, #14142b 100%);border:1px solid rgba(247,201,72,.2);border-radius:16px;padding:28px 22px;width:100%;max-width:440px;text-align:center;position:relative">' +
+            '<div style="position:absolute;top:-10px;left:24px;background:var(--gold);color:#0d0d1a;font-size:.68rem;font-weight:900;padding:3px 12px;border-radius:10px;letter-spacing:.06em">CLUE</div>' +
+            '<div style="font-size:1.1rem;color:#e8e8f0;line-height:1.6;font-weight:500;margin-top:4px">' + h(item.clue) + '</div>' +
+          '</div>' +
+        '</div>' +
         '<button class="sc-reveal" onclick="revealPlayCard()">Reveal Answer</button>' +
       '</div>' +
       '<div class="sc-back" id="play-back">' +
