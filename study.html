@@ -508,7 +508,7 @@ async function init() {
 
   // Phase 2: load full data in background (clues + study mode)
   try {
-    const r2   = await fetch('data/processed/flashcards.json?v=2');
+    const r2   = await fetch('data/processed/flashcards.json?v=3');
     const raw2 = await r2.json();
     for (const [id, d] of Object.entries(raw2)) {
       const c = cardMap.get(id);
@@ -858,7 +858,7 @@ function h(s) {
 /* ── Service worker ── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () =>
-    navigator.serviceWorker.register('sw.js?v=8').catch(() => {})
+    navigator.serviceWorker.register('sw.js?v=9').catch(() => {})
   );
 }
 
