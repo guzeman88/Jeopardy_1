@@ -766,14 +766,11 @@ function renderStudyCard() {
     `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
     `<div class="study-card">` +
       `<div class="sc-front" id="sc-front">` +
-        `<div class="sc-label">Answer</div>` +
-        `<div class="sc-term">${h(c.id)}</div>` +
-        `<div class="sc-cats">${c.cats.slice(0,5).map(cat=>`<span class="cat-chip">${h(cat)}</span>`).join('')}${c.cats.length>5?`<span class="cat-chip">+${c.cats.length-5} more</span>`:''}</div>` +
-        `<button class="sc-reveal" onclick="revealCard()">Reveal Clues</button>` +
+        `<div class="sc-wc-study" style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;padding:8px"><img id="sc-study-wc" alt="" style="max-width:100%;max-height:100%;display:block;border-radius:8px;object-fit:contain"></div>` +
+        `<button class="sc-reveal" onclick="revealCard()">Reveal Answer</button>` +
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
-        `<div class="sc-back-term">${h(c.id)}</div>` +
-        `<div class="sc-wc-study"><img id="sc-study-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
+        `<div class="sc-back-term" style="font-size:1.9rem;text-align:center;padding:24px 18px 14px;color:var(--gold);font-weight:900">${h(c.id)}</div>` +
         `<div class="sc-back-clues">` +
           c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
           (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
@@ -785,17 +782,16 @@ function renderStudyCard() {
       `<button class="sht-btn sht-review" onclick="studyMark('review')">↩ Review</button>` +
       `<button class="sht-btn sht-known" onclick="studyMark('known')">✓ Known</button>` +
     `</div></div>`;
+  requestAnimationFrame(function() { showStudyWordCloud(c.id); });
 }
 
 function revealCard() {
-  const front = document.getElementById('sc-front');
-  const back  = document.getElementById('sc-back');
-  const acts  = document.getElementById('study-acts');
+  var front = document.getElementById('sc-front');
+  var back  = document.getElementById('sc-back');
+  var acts  = document.getElementById('study-acts');
   if (front) front.style.display = 'none';
   if (back)  back.classList.add('vis');
   if (acts)  acts.style.display  = 'flex';
-  const c = studyQueue[studyIdx];
-  if (c) showStudyWordCloud(c.id);
 }
 
 function studyMark(st) {
