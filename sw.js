@@ -4,7 +4,7 @@
    lazily on first use so install never fails.
    ========================================================= */
 
-const CACHE = 'jep-study-v5';
+const CACHE = 'jep-study-v6';
 const PRECACHE = [
   '/study.html',
   '/manifest.json',
