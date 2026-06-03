@@ -818,9 +818,7 @@ function renderStudyCard() {
   const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('study-content').innerHTML =
     `<div id="study-wrap">` +
-    `<div class="study-prog-bar"><div class="study-prog-fill" style="width:${pct}%"></div></div>` +
-    `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
-    `<div class="study-card">` +
+    `<div class="study-card" style="padding-top:8px">` +
       `<div class="sc-front" id="sc-front">` +
         `<div class="sc-wc-study" style="width:100%;overflow:hidden;border-radius:8px"><img id="sc-study-wc" alt="" style="width:100%;display:block;margin-top:-3.25%;border-radius:8px"></div>` +
         `<button class="sc-reveal" onclick="revealCard()">Reveal Answer</button>` +
@@ -901,9 +899,7 @@ function renderPlayCard() {
   var pct  = tot > 0 ? (playIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('play-content').innerHTML =
     '<div id="study-wrap">' +
-    '<div class="study-prog-bar"><div class="study-prog-fill" style="width:' + pct + '%"></div></div>' +
-    '<div class="study-counter">' + (playIdx + 1) + ' / ' + tot + '</div>' +
-    '<div class="study-card">' +
+    '<div class="study-card" style="padding-top:8px">' +
       '<div class="sc-front" id="play-front">' +
         '<div style="display:flex;flex-direction:column;align-items:center;width:100%">' +
           '<div style="font-size:.68rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;text-align:center">' + h(item.category) + '</div>' +
