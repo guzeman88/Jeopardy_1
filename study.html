@@ -822,7 +822,7 @@ function renderStudyCard() {
     `<div class="study-counter">${studyIdx + 1} / ${tot}${c.total ? ` · ${c.total} clues` : ''}</div>` +
     `<div class="study-card">` +
       `<div class="sc-front" id="sc-front">` +
-        `<div class="sc-wc-study" style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0"><img id="sc-study-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
+        `<div class="sc-wc-study" style="width:100%"><img id="sc-study-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
         `<button class="sc-reveal" onclick="revealCard()">Reveal Answer</button>` +
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
@@ -905,7 +905,7 @@ function renderPlayCard() {
     '<div class="study-counter">' + (playIdx + 1) + ' / ' + tot + '</div>' +
     '<div class="study-card">' +
       '<div class="sc-front" id="play-front">' +
-        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:0">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;width:100%">' +
           '<div style="font-size:.68rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;text-align:center">' + h(item.category) + '</div>' +
           '<div style="background:linear-gradient(160deg, #1a1a38 0%, #14142b 100%);border:1px solid rgba(247,201,72,.2);border-radius:16px;padding:26px 20px;width:calc(100% - 32px);max-width:440px;text-align:center;position:relative">' +
             '<div style="position:absolute;top:-10px;left:24px;background:var(--gold);color:#0d0d1a;font-size:.68rem;font-weight:900;padding:3px 12px;border-radius:10px;letter-spacing:.06em">CLUE</div>' +
