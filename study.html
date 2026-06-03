@@ -656,7 +656,7 @@ function showWordCloud(id) {
   var wrap = document.getElementById('wc-wrap');
   var img  = document.getElementById('wc-img');
   if (!wrap || !img) return;
-  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg?v=1';
   img.alt = id;
   wrap.style.display = '';
 }
@@ -665,7 +665,7 @@ function showStudyWordCloud(id) {
   var img  = document.getElementById('sc-study-wc');
   var wrap = img ? img.parentElement : null;
   if (!img || !wrap) return;
-  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.src = '/output/cards/answers/' + safeFilename(id) + '.jpg?v=1';
   img.alt = id;
   wrap.style.display = '';
 }
