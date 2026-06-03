@@ -71,28 +71,10 @@ for answer, group in df.groupby("answer"):
         seen.add(txt.lower())
         rows.append({"cat": r["category"], "text": txt})
 
-    # Keep up to 12 most representative clues, spread across categories
-    # Strategy: pick at most 2 per category, then fill up to 12
-    cat_counts: dict = {}
-    selected = []
-    for row in rows:
-        c = row["cat"]
-        if cat_counts.get(c, 0) < 2:
-            selected.append(row)
-            cat_counts[c] = cat_counts.get(c, 0) + 1
-        if len(selected) >= 12:
-            break
-    # If we got fewer than 12, fill from the remainder
-    if len(selected) < 12:
-        for row in rows:
-            if row not in selected:
-                selected.append(row)
-            if len(selected) >= 12:
-                break
-
-    unique_cats = sorted(set(r["cat"] for r in selected))
+    # Include all deduplicated clues
+    unique_cats = sorted(set(r["cat"] for r in rows))
     flashcards[answer] = {
-        "clues": selected,
+        "clues": rows,
         "categories": unique_cats,
         "total_clues": len(group),
     }
