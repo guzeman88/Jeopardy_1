@@ -645,8 +645,7 @@ function openSheet(id) {
   curId = id;
   document.getElementById('sht-term').textContent = c.id;
   document.getElementById('sht-meta').textContent = `${c.total} clues · ${c.cats.length} categories`;
-  document.getElementById('sht-cats').innerHTML =
-    c.cats.map(cat => `<span class="cat-chip">${h(cat)}</span>`).join('');
+  document.getElementById('sht-cats').innerHTML = '';
   document.getElementById('sht-body').innerHTML = c.clues.length
     ? c.clues.map(cl =>
         `<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`
