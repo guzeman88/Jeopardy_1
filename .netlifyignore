@@ -9,7 +9,8 @@ data/processed/associations_answers.json
 data/processed/associations_categories.json
 venv/
 notebooks/
-output/
+output/stats/
+output/cards/categories/
 __pycache__/
 *.pyc
 *.parquet

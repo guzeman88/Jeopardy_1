@@ -348,7 +348,6 @@
     .game-link { color: var(--gold); text-decoration: none; font-weight: 600; }
     .game-link:hover { text-decoration: underline; }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
 </head>
 <body>
 
@@ -445,10 +444,7 @@
       <div class="sheet-submeta" id="sht-meta"></div>
       <div class="cats-wrap" id="sht-cats"></div>
     </div>
-    <div id="wc-wrap" class="hidden">
-      <div id="wc-loading">Building word map…</div>
-      <canvas id="wc-canvas" height="190"></canvas>
-    </div>
+    <div id="wc-wrap"><img id="wc-img" src="" alt="" style="width:100%;display:block;border-radius:0 0 8px 8px"></div>
     <div class="sheet-body" id="sht-body"></div>
     <div class="sheet-foot">
       <button class="sht-btn sht-close" onclick="closeSheet()">Close</button>
@@ -478,7 +474,6 @@ let studyIdx   = 0;
 let browseList   = [];  // current filtered+sorted list
 let browseEnd    = 0;   // how many rows rendered so far
 let scrollObs    = null;
-let assocData    = null;  // word-frequency maps, loaded in phase 3
 
 /* ── Init ── */
 // Phase 2 flag: true once full clue data is merged in
@@ -528,13 +523,6 @@ async function init() {
     // Full load failed - browse still works
   }
 
-  // Phase 3: load word-frequency data for word maps (~1 MB)
-  try {
-    const r3   = await fetch('data/processed/associations_slim.json');
-    assocData  = await r3.json();
-  } catch (_) {
-    // Word maps won't show — everything else still works
-  }
 }
 
 /* â”€â”€ Tabs â”€â”€ */
@@ -654,98 +642,32 @@ function openSheet(id) {
   refreshSheetBtns();
   document.getElementById('sheet').classList.add('open');
   document.body.style.overflow = 'hidden';
-  renderWordCloud(id);
+  showWordCloud(id);
 }
 
-function renderWordCloud(id) {
-  const wrap = document.getElementById('wc-wrap');
-  const canvas = document.getElementById('wc-canvas');
-  const loading = document.getElementById('wc-loading');
-
-  if (!assocData || !assocData[id]) {
-    wrap.classList.add('hidden');
-    return;
-  }
-
-  wrap.classList.remove('hidden');
-  loading.style.display = 'flex';
-  canvas.style.display = 'none';
-
-  // Build word list sorted by frequency descending
-  const words = Object.entries(assocData[id])
-    .sort((a, b) => b[1] - a[1]);
-
-  const maxFreq = words[0] ? words[0][1] : 1;
-
-  // Size canvas to fill the panel width
-  const panelW = document.getElementById('sheet-panel').offsetWidth || window.innerWidth;
-  const h = 190;
-  canvas.width  = panelW * (window.devicePixelRatio || 1);
-  canvas.height = h      * (window.devicePixelRatio || 1);
-  canvas.style.width  = panelW + 'px';
-  canvas.style.height = h + 'px';
-
-  // Color palette matching the app theme
-  const COLORS = ['#f7c948','#22c55e','#06b6d4','#8b5cf6','#f59e0b','#10b981','#60a5fa','#e879f9'];
-  function pickColor(word, weight) {
-    const idx = (word.charCodeAt(0) + word.length) % COLORS.length;
-    return COLORS[idx];
-  }
-
-  // WeightFactor scales the largest word to fill nicely
-  const wf = Math.min(18, Math.max(6, (panelW / maxFreq) * 0.6));
-
-  WordCloud(canvas, {
-    list:            words,
-    fontFamily:      '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    fontWeight:      '800',
-    color:           pickColor,
-    backgroundColor: '#0d0d1a',
-    gridSize:        Math.round(8 * (panelW / 375)),
-    weightFactor:    wf,
-    rotateRatio:     0.25,
-    minSize:         9,
-    drawOutOfBound:  false,
-    shuffle:         false,
-    wait:            0,
-  });
-
-  // Show canvas once rendered (wordcloud2 is synchronous on canvas)
-  loading.style.display = 'none';
-  canvas.style.display = 'block';
+function safeFilename(name) {
+  return String(name).trim()
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+    .replace(/\s+/g, '_')
+    .substring(0, 120);
 }
 
-function renderStudyWordCloud(id) {
-  const canvas = document.getElementById('sc-study-wc');
-  const wrap   = canvas ? canvas.parentElement : null;
-  if (!canvas || !wrap) return;
-  if (!assocData || !assocData[id]) { wrap.style.display = 'none'; return; }
+function showWordCloud(id) {
+  var wrap = document.getElementById('wc-wrap');
+  var img  = document.getElementById('wc-img');
+  if (!wrap || !img) return;
+  img.src = 'output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.alt = id;
   wrap.style.display = '';
-  const words   = Object.entries(assocData[id]).sort((a, b) => b[1] - a[1]);
-  const maxFreq = words[0] ? words[0][1] : 1;
-  const W = wrap.offsetWidth || (window.innerWidth - 24);
-  const H = 165;
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width  = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
-  const COLORS = ['#f7c948','#22c55e','#06b6d4','#8b5cf6','#f59e0b','#10b981','#60a5fa','#e879f9'];
-  const wf = Math.min(18, Math.max(6, (W / maxFreq) * 0.6));
-  WordCloud(canvas, {
-    list:           words,
-    fontFamily:     '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    fontWeight:     '800',
-    color:          (w) => COLORS[(w.charCodeAt(0) + w.length) % COLORS.length],
-    backgroundColor: '#0d0d1a',
-    gridSize:       Math.round(8 * (W / 375)),
-    weightFactor:   wf,
-    rotateRatio:    0.25,
-    minSize:        9,
-    drawOutOfBound: false,
-    shuffle:        false,
-    wait:           0,
-  });
+}
+
+function showStudyWordCloud(id) {
+  var img  = document.getElementById('sc-study-wc');
+  var wrap = img ? img.parentElement : null;
+  if (!img || !wrap) return;
+  img.src = 'output/cards/answers/' + safeFilename(id) + '.jpg';
+  img.alt = id;
+  wrap.style.display = '';
 }
 
 function closeSheet() {
@@ -851,7 +773,7 @@ function renderStudyCard() {
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term">${h(c.id)}</div>` +
-        `<div class="sc-wc-study"><canvas id="sc-study-wc"></canvas></div>` +
+        `<div class="sc-wc-study"><img id="sc-study-wc" src="" alt="" style="width:100%;display:block;border-radius:8px"></div>` +
         `<div class="sc-back-clues">` +
           c.clues.slice(0,10).map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
           (c.clues.length>10?`<div class="sc-more">+${c.clues.length-10} more — open in Browse for full list</div>`:'') +
@@ -873,7 +795,7 @@ function revealCard() {
   if (back)  back.classList.add('vis');
   if (acts)  acts.style.display  = 'flex';
   const c = studyQueue[studyIdx];
-  if (c) renderStudyWordCloud(c.id);
+  if (c) showStudyWordCloud(c.id);
 }
 
 function studyMark(st) {
