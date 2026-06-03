@@ -825,6 +825,7 @@ function renderStudyCard() {
       `</div>` +
       `<div class="sc-back" id="sc-back">` +
         `<div class="sc-back-term" style="font-size:1.9rem;text-align:center;padding:24px 18px 14px;color:var(--gold);font-weight:900">${h(c.id)}</div>` +
+        `<div class="sc-wc-study" style="width:100%;overflow:hidden;flex-shrink:0"><img id="sc-study-wc-back" alt="" style="width:100%;max-width:100%;display:block;border-radius:8px"></div>` +
         `<div class="sc-back-clues">` +
           c.clues.map(cl=>`<div class="clue-block"><div class="clue-cat">${h(cl.cat)}</div><div class="clue-txt">${h(cl.text)}</div></div>`).join('') +
         `</div>` +
@@ -844,6 +845,9 @@ function revealCard() {
   if (front) front.style.display = 'none';
   if (back)  back.classList.add('vis');
   if (acts)  acts.style.display  = 'flex';
+  var c = studyQueue[studyIdx];
+  var img = document.getElementById('sc-study-wc-back');
+  if (img && c) { img.src = '/output/cards/answers/' + safeFilename(c.id) + '.jpg?v=1'; img.alt = c.id; }
 }
 
 function studyMark(st) {
@@ -911,7 +915,7 @@ function renderPlayCard() {
       '</div>' +
       '<div class="sc-back" id="play-back">' +
         '<div style="font-size:1.9rem;font-weight:900;color:var(--gold);text-align:center;padding:24px 18px 12px">' + h(item.answer) + '</div>' +
-        '<div class="sc-wc-study" style="width:100%"><img id="play-wc" alt="" style="width:100%;display:block;border-radius:8px"></div>' +
+        '<div class="sc-wc-study" style="width:100%;overflow:hidden;flex-shrink:0"><img id="play-wc" alt="" style="width:100%;max-width:100%;display:block;border-radius:8px"></div>' +
         '<div style="padding:16px 20px 0;font-size:.68rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;text-align:center">' + h(item.category) + '</div>' +
         '<div style="padding:10px 20px 20px">' +
           '<div style="background:linear-gradient(160deg, #1a1a38 0%, #14142b 100%);border:1px solid rgba(247,201,72,.15);border-radius:12px;padding:20px 18px;text-align:center;position:relative">' +
