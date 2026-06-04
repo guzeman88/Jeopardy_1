@@ -608,7 +608,7 @@ function changeDeck(delta) {
   var next = activeDeck + delta;
   if (next < 1 || next > DECK_COUNT) return;
   if (!isDeckUnlocked(next - 1)) return;
-  activeDeck = next; saveDeckConfig();
+  activeDeck = next; saveDeckConfig(); updateBadge();
   studyQueue = []; studyIdx = 0; playPool = []; playIdx = 0;
   if (activeTab === 'study') renderStudy();
   if (activeTab === 'play')  renderPlay();
@@ -1182,8 +1182,9 @@ function showDeckDetail(n) {
 function save() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (_) {} }
 
 function updateBadge() {
-  const total = cards.length;
-  document.getElementById('hdr-badge').textContent = total ? `${knownCount} / ${total} known` : '0 known';
+  var s = getDeckStats(activeDeck - 1);
+  var el = document.getElementById('hdr-badge');
+  if (el) el.textContent = 'Deck ' + activeDeck + ' · ' + s.known + '/' + DECK_SIZE;
 }
 
 function resetProgress() {
