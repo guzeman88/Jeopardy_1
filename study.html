@@ -922,12 +922,6 @@ function shuffle(arr) {
   }
 }
 
-function deckBadgeHTML(cardIdx, cardTotal) {
-  return '<div style="text-align:center;padding:8px 16px 2px;flex-shrink:0">' +
-    '<span style="font-size:.73rem;font-weight:700;color:var(--txt3);background:var(--bg3);padding:4px 12px;border-radius:20px;letter-spacing:.04em">' +
-    'Deck ' + activeDeck + ' · Card ' + (cardIdx || '—') + '/' + (cardTotal || '—') + '</span></div>';
-}
-
 function renderStudy() {
   if (!fullDataLoaded && cards.length > 0) {
     document.getElementById('study-content').innerHTML =
@@ -970,7 +964,6 @@ function renderStudyCard() {
   const tot = studyQueue.length;
   const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('study-content').innerHTML =
-    deckBadgeHTML(studyIdx + 1, studyQueue.length) +
     `<div id="study-wrap">` +
     `<div class="study-card" style="padding-top:4px">` +
       `<div class="sc-front" id="sc-front">` +
@@ -1060,7 +1053,6 @@ function renderPlayCard() {
   var tot  = playPool.length;
   var pct  = tot > 0 ? (playIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('play-content').innerHTML =
-    deckBadgeHTML(playIdx + 1, playPool.length) +
     '<div id="study-wrap">' +
     '<div class="study-card" style="padding-top:8px">' +
       '<div class="sc-front" id="play-front">' +
