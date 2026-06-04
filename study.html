@@ -316,6 +316,69 @@
       cursor: pointer; text-decoration: underline;
     }
 
+    /* ── Deck selector ── */
+    .deck-arrow {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg3); border: 1px solid rgba(255,255,255,.08);
+      color: var(--gold); font-size: .9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, opacity .2s;
+      -webkit-user-select: none; user-select: none; padding: 0;
+    }
+    .deck-arrow:active { background: var(--bg4); }
+    .deck-arrow:disabled { opacity: .25; cursor: default; }
+    .deck-label {
+      font-size: .92rem; font-weight: 700; color: var(--txt);
+      min-width: 140px; text-align: center;
+    }
+    .deck-progress {
+      text-align: center; font-size: .73rem; color: var(--txt3);
+      margin: 2px 16px 6px; flex-shrink: 0;
+    }
+
+    /* ── Deck grid ── */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px; padding: 4px 0 16px;
+    }
+    .deck-dot {
+      aspect-ratio: 1; border-radius: 50%;
+      background: var(--bg4);
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+      -webkit-user-select: none; user-select: none;
+    }
+    .deck-dot:active { transform: scale(.88); }
+    .deck-dot.complete  { background: var(--gold); border-color: var(--gold2); }
+    .deck-dot.partial   { border-color: var(--gold); }
+    .deck-dot.reviewing { border-color: var(--review); }
+    .deck-dot.active    { box-shadow: 0 0 0 2.5px var(--gold); }
+    .deck-dot.locked    { opacity: .3; pointer-events: none; }
+
+    .deck-detail-card {
+      background: var(--bg2); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px; padding: 16px; margin-bottom: 16px;
+    }
+    .deck-detail-title {
+      font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 8px;
+    }
+    .deck-detail-stat {
+      font-size: .82rem; color: var(--txt2); margin-bottom: 4px;
+    }
+    .deck-detail-bar {
+      height: 6px; border-radius: 3px; background: var(--bg3);
+      margin-top: 10px; overflow: hidden; display: flex;
+    }
+    .deck-detail-bar-fill { background: var(--gold); height: 100%; transition: width .3s; }
+    .deck-detail-card button {
+      margin-top: 12px; background: var(--gold); color: #0d0d1a;
+      border: none; border-radius: 10px; padding: 10px 20px;
+      font-size: .85rem; font-weight: 700; cursor: pointer; width: 100%;
+    }
+    .deck-detail-card button:active { opacity: .8; }
+
     /* ── Stats tab ── */
     .stats-wrap { padding: 20px 16px 32px; }
     .stats-section-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--txt3); margin-bottom: 12px; }
@@ -416,7 +479,11 @@
           <div class="stat-card"><div class="stat-card-label">Unseen</div><div class="stat-card-val" id="sv-unseen">—</div></div>
           <div class="stat-card"><div class="stat-card-label">Known</div><div class="stat-card-val green" id="sv-known">—</div></div>
           <div class="stat-card"><div class="stat-card-label">Reviewing</div><div class="stat-card-val amber" id="sv-review">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Decks Done</div><div class="stat-card-val gold" id="sv-decks">—</div></div>
         </div>
+        <div class="stats-section-title" style="margin-top:20px">Deck Progress</div>
+        <div class="deck-grid" id="deck-grid"></div>
+        <div id="deck-detail" style="display:none"></div>
         <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
       </div>
     </div>
@@ -467,13 +534,19 @@
 'use strict';
 
 const PKEY = 'jep-study-v1';
-const PAGE = 60; // rows per render batch
+const DKEY = 'jep-study-deck-v1';
+const PAGE = 60;
+const DECK_SIZE = 25;
+const DECK_COUNT = 60;
 
 let cards      = [];
-let cardMap    = new Map();  // id → card, O(1) lookup
+let cardMap    = new Map();
 let progress   = {};
 let knownCount = 0;
 let reviewCount = 0;
+let deckCards  = [];
+let decks      = [];
+let activeDeck = 1;
 let curId      = null;
 let activeTab  = 'browse';
 let studyQueue = [];
@@ -487,6 +560,70 @@ let scrollObs    = null;
 /* ── Init ── */
 // Phase 2 flag: true once full clue data is merged in
 let fullDataLoaded = false;
+
+/* ── Deck functions ── */
+function buildDecks() {
+  deckCards = cards.slice().sort(function(a, b) {
+    if (b.total !== a.total) return b.total - a.total;
+    return a.id.localeCompare(b.id, undefined, {sensitivity: 'base'});
+  });
+  decks = [];
+  for (var i = 0; i < DECK_COUNT; i++) {
+    decks[i] = deckCards.slice(i * DECK_SIZE, (i + 1) * DECK_SIZE);
+  }
+}
+
+function getActiveDeckCards() { return decks[activeDeck - 1] || []; }
+
+function getDeckStats(n) {
+  var deck = decks[n]; if (!deck) return {known: 0, review: 0, unseen: 0, total: 0};
+  var k = 0, r = 0;
+  for (var i = 0; i < deck.length; i++) {
+    var st = progress[deck[i].id];
+    if (st === 'known') k++; else if (st === 'review') r++;
+  }
+  return {known: k, review: r, unseen: deck.length - k - r, total: deck.length};
+}
+
+function isDeckComplete(n) { return getDeckStats(n).known === DECK_SIZE; }
+
+function isDeckUnlocked(n) {
+  if (n === 0) return true;
+  for (var i = 0; i < n; i++) { if (!isDeckComplete(i)) return false; }
+  return true;
+}
+
+function loadDeckConfig() {
+  try {
+    var raw = localStorage.getItem(DKEY);
+    if (raw) { var cfg = JSON.parse(raw); activeDeck = (cfg.activeDeck >= 1 && cfg.activeDeck <= DECK_COUNT) ? cfg.activeDeck : 1; }
+  } catch (_) { activeDeck = 1; }
+}
+
+function saveDeckConfig() {
+  try { localStorage.setItem(DKEY, JSON.stringify({activeDeck: activeDeck})); } catch (_) {}
+}
+
+function changeDeck(delta) {
+  var next = activeDeck + delta;
+  if (next < 1 || next > DECK_COUNT) return;
+  if (!isDeckUnlocked(next - 1)) return;
+  activeDeck = next; saveDeckConfig();
+  studyQueue = []; studyIdx = 0; playPool = []; playIdx = 0;
+  if (activeTab === 'study') renderStudy();
+  if (activeTab === 'play')  renderPlay();
+  if (activeTab === 'stats') renderStats();
+}
+
+function setActiveDeck(n) {
+  if (n < 1 || n > DECK_COUNT) return;
+  if (!isDeckUnlocked(n - 1)) return;
+  activeDeck = n; saveDeckConfig();
+  studyQueue = []; studyIdx = 0; playPool = []; playIdx = 0;
+  if (activeTab === 'study') renderStudy();
+  if (activeTab === 'play')  renderPlay();
+  if (activeTab === 'stats') renderStats();
+}
 
 async function init() {
   try { progress = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (_) { progress = {}; }
@@ -504,6 +641,8 @@ async function init() {
     }));
     cards.sort((a, b) => { const la = a.id.toLowerCase(), lb = b.id.toLowerCase(); return la < lb ? -1 : la > lb ? 1 : 0; });
     cardMap = new Map(cards.map(c => [c.id, c]));
+    buildDecks();
+    loadDeckConfig();
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display     = 'flex';
@@ -769,10 +908,11 @@ function setStatus(st) {
 
 /* â”€â”€ Study mode â”€â”€ */
 function buildQueue() {
-  const review = cards.filter(c => progress[c.id] === 'review');
-  const unseen = cards.filter(c => !progress[c.id]);
+  var deck = getActiveDeckCards();
+  var review = deck.filter(function(c) { return progress[c.id] === 'review'; });
+  var unseen = deck.filter(function(c) { return !progress[c.id]; });
   shuffle(review); shuffle(unseen);
-  return [...review, ...unseen];
+  return [].concat(review, unseen);
 }
 
 function shuffle(arr) {
@@ -782,8 +922,25 @@ function shuffle(arr) {
   }
 }
 
+function deckSelectorHTML() {
+  var prevOff = activeDeck <= 1 || !isDeckUnlocked(activeDeck - 2);
+  var nextOff = activeDeck >= DECK_COUNT || !isDeckUnlocked(activeDeck);
+  return '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px 2px;flex-shrink:0">' +
+    '<button class="deck-arrow" onclick="changeDeck(-1)"' + (prevOff ? ' disabled' : '') + '>&#9664;</button>' +
+    '<span class="deck-label">Deck ' + activeDeck + ' of ' + DECK_COUNT + '</span>' +
+    '<button class="deck-arrow" onclick="changeDeck(1)"' + (nextOff ? ' disabled' : '') + '>&#9654;</button>' +
+    '</div>';
+}
+
+function renderDeckProgress() {
+  var s = getDeckStats(activeDeck - 1);
+  var el = document.getElementById('deck-progress');
+  if (!el) return;
+  if (s.known === DECK_SIZE) { el.textContent = 'All 25 cards known!'; el.style.color = 'var(--known)'; }
+  else { el.textContent = s.known + ' known · ' + s.review + ' reviewing · ' + s.unseen + ' unseen'; el.style.color = 'var(--txt3)'; }
+}
+
 function renderStudy() {
-  // Show a holding screen if clues haven't loaded yet
   if (!fullDataLoaded && cards.length > 0) {
     document.getElementById('study-content').innerHTML =
       '<div class="study-splash"><div class="splash-icon" style="font-size:2rem">⏳</div>' +
@@ -791,10 +948,17 @@ function renderStudy() {
       '<div class="splash-sub">Study mode needs the full card data. It loads automatically in the background — check back in a few seconds.</div></div>';
     return;
   }
-  const total = cards.length;
-  if (knownCount === total && total > 0) {
+  var deckStats = getDeckStats(activeDeck - 1);
+  if (deckStats.known === DECK_SIZE) {
+    var nextAvail = activeDeck < DECK_COUNT && isDeckUnlocked(activeDeck);
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">All ${total} cards known!</div><div class="splash-sub">You've marked every card as Known. Reset progress to start fresh.</div><button class="splash-btn" onclick="showTab('stats')">View Progress</button></div>`;
+      deckSelectorHTML() +
+      '<div id="study-wrap">' +
+      '<div class="deck-progress" style="text-align:center;font-size:.82rem;color:var(--known);margin:6px 16px">All 25 cards in Deck ' + activeDeck + ' known!</div>' +
+      '<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">Deck ' + activeDeck + ' Complete!</div>' +
+      '<div class="splash-sub">' + (nextAvail ? 'Deck ' + (activeDeck + 1) + ' is now unlocked.' : 'All 60 decks complete! Amazing!') + '</div>' +
+      (nextAvail ? '<button class="splash-btn" onclick="changeDeck(1)">Start Deck ' + (activeDeck + 1) + '</button>' : '<button class="splash-btn" onclick="showTab(\'stats\')">View Progress</button>') +
+      '<button class="splash-btn-sec" onclick="restartStudy()">Review Deck Again</button></div></div>';
     return;
   }
   if (!studyQueue.length || studyIdx >= studyQueue.length) {
@@ -802,7 +966,8 @@ function renderStudy() {
   }
   if (!studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      `<div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study</div></div>`;
+      deckSelectorHTML() +
+      '<div id="study-wrap"><div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study in Deck ' + activeDeck + '</div></div></div>';
     return;
   }
   renderStudyCard();
@@ -818,6 +983,8 @@ function renderStudyCard() {
   const tot = studyQueue.length;
   const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('study-content').innerHTML =
+    deckSelectorHTML() +
+    '<div class="deck-progress" id="deck-progress" style="text-align:center;font-size:.73rem;color:var(--txt3);margin:2px 16px 6px;flex-shrink:0"></div>' +
     `<div id="study-wrap">` +
     `<div class="study-card" style="padding-top:8px">` +
       `<div class="sc-front" id="sc-front">` +
@@ -836,7 +1003,7 @@ function renderStudyCard() {
       `<button class="sht-btn sht-review" onclick="studyMark('review')">Not Quite</button>` +
       `<button class="sht-btn sht-known" onclick="studyMark('known')">Got It</button>` +
     `</div></div>`;
-  requestAnimationFrame(function() { showStudyWordCloud(c.id); });
+  requestAnimationFrame(function() { showStudyWordCloud(c.id); renderDeckProgress(); });
 }
 
 function revealCard() {
@@ -877,7 +1044,8 @@ var playIdx  = 0;
 
 function buildPlayPool() {
   playPool = [];
-  cards.forEach(function(c) {
+  var deck = getActiveDeckCards();
+  deck.forEach(function(c) {
     c.clues.forEach(function(cl) {
       playPool.push({answer: c.id, category: cl.cat, clue: cl.text});
     });
@@ -906,6 +1074,7 @@ function renderPlayCard() {
   var tot  = playPool.length;
   var pct  = tot > 0 ? (playIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('play-content').innerHTML =
+    deckSelectorHTML() +
     '<div id="study-wrap">' +
     '<div class="study-card" style="padding-top:8px">' +
       '<div class="sc-front" id="play-front">' +
@@ -976,16 +1145,59 @@ function recomputeCounts() {
 }
 
 function renderStats() {
-  const total  = cards.length;
-  const unseen = total - knownCount - reviewCount;
-  const kPct   = total ? (knownCount  / total * 100) : 0;
-  const rPct   = total ? (reviewCount / total * 100) : 0;
+  var total  = cards.length;
+  var unseen = total - knownCount - reviewCount;
+  var kPct   = total ? (knownCount  / total * 100) : 0;
+  var rPct   = total ? (reviewCount / total * 100) : 0;
   document.getElementById('bar-k').style.width    = kPct + '%';
   document.getElementById('bar-r').style.width    = rPct + '%';
   document.getElementById('sv-total').textContent  = total;
   document.getElementById('sv-known').textContent  = knownCount;
   document.getElementById('sv-review').textContent = reviewCount;
   document.getElementById('sv-unseen').textContent = unseen;
+  var dd = 0;
+  for (var i = 0; i < DECK_COUNT; i++) { if (isDeckComplete(i)) dd++; }
+  document.getElementById('sv-decks').textContent = dd;
+  renderDeckGrid();
+  var detail = document.getElementById('deck-detail');
+  if (detail) detail.style.display = 'none';
+}
+
+function renderDeckGrid() {
+  var grid = document.getElementById('deck-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (var i = 0; i < DECK_COUNT; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'deck-dot';
+    var stats = getDeckStats(i);
+    if (stats.known === DECK_SIZE) dot.classList.add('complete');
+    else if (stats.review > 0) dot.classList.add('reviewing');
+    else if (stats.known > 0) dot.classList.add('partial');
+    if (!isDeckUnlocked(i)) dot.classList.add('locked');
+    if (i + 1 === activeDeck) dot.classList.add('active');
+    dot.title = 'Deck ' + (i + 1) + ': ' + stats.known + '/' + DECK_SIZE + ' known';
+    (function(n) { dot.addEventListener('click', function() { showDeckDetail(n); }); })(i);
+    grid.appendChild(dot);
+  }
+}
+
+function showDeckDetail(n) {
+  var detail = document.getElementById('deck-detail');
+  var stats = getDeckStats(n);
+  var unlocked = isDeckUnlocked(n);
+  var isActive = n + 1 === activeDeck;
+  detail.style.display = '';
+  detail.innerHTML =
+    '<div class="deck-detail-card">' +
+      '<div class="deck-detail-title">Deck ' + (n + 1) + (unlocked ? (stats.known === DECK_SIZE ? ' ✓' : '') : ' 🔒') + '</div>' +
+      '<div class="deck-detail-stat">' + stats.known + ' / ' + DECK_SIZE + ' known</div>' +
+      '<div class="deck-detail-stat">' + stats.review + ' reviewing</div>' +
+      '<div class="deck-detail-stat">' + stats.unseen + ' unseen</div>' +
+      '<div class="deck-detail-bar"><div class="deck-detail-bar-fill" style="width:' + (stats.known / DECK_SIZE * 100).toFixed(1) + '%"></div></div>' +
+      (unlocked && !isActive ? '<button onclick="setActiveDeck(' + (n + 1) + ');showTab(\'study\')">Study Deck ' + (n + 1) + '</button>' : '') +
+      (!unlocked ? '<div style="margin-top:8px;font-size:.78rem;color:var(--txt3)">Complete all cards in previous decks to unlock.</div>' : '') +
+    '</div>';
 }
 
 /* ── Persistence ── */
@@ -999,9 +1211,12 @@ function updateBadge() {
 function resetProgress() {
   if (!confirm('Reset all progress? This cannot be undone.')) return;
   progress = {}; knownCount = 0; reviewCount = 0;
-  save(); studyQueue = []; studyIdx = 0;
+  activeDeck = 1;
+  save(); saveDeckConfig();
+  studyQueue = []; studyIdx = 0; playPool = []; playIdx = 0;
   updateBadge(); renderStats(); renderBrowse();
   if (activeTab === 'study') renderStudy();
+  if (activeTab === 'play') renderPlay();
 }
 
 function h(s) {
