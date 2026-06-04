@@ -922,22 +922,10 @@ function shuffle(arr) {
   }
 }
 
-function deckSelectorHTML() {
-  var prevOff = activeDeck <= 1 || !isDeckUnlocked(activeDeck - 2);
-  var nextOff = activeDeck >= DECK_COUNT || !isDeckUnlocked(activeDeck);
-  return '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px 2px;flex-shrink:0">' +
-    '<button class="deck-arrow" onclick="changeDeck(-1)"' + (prevOff ? ' disabled' : '') + '>&#9664;</button>' +
-    '<span class="deck-label">Deck ' + activeDeck + ' of ' + DECK_COUNT + '</span>' +
-    '<button class="deck-arrow" onclick="changeDeck(1)"' + (nextOff ? ' disabled' : '') + '>&#9654;</button>' +
-    '</div>';
-}
-
-function renderDeckProgress() {
-  var s = getDeckStats(activeDeck - 1);
-  var el = document.getElementById('deck-progress');
-  if (!el) return;
-  if (s.known === DECK_SIZE) { el.textContent = 'All 25 cards known!'; el.style.color = 'var(--known)'; }
-  else { el.textContent = s.known + ' known · ' + s.review + ' reviewing · ' + s.unseen + ' unseen'; el.style.color = 'var(--txt3)'; }
+function deckBadgeHTML(cardIdx, cardTotal) {
+  return '<div style="text-align:center;padding:8px 16px 2px;flex-shrink:0">' +
+    '<span style="font-size:.73rem;font-weight:700;color:var(--txt3);background:var(--bg3);padding:4px 12px;border-radius:20px;letter-spacing:.04em">' +
+    'Deck ' + activeDeck + ' · Card ' + (cardIdx || '—') + '/' + (cardTotal || '—') + '</span></div>';
 }
 
 function renderStudy() {
@@ -952,9 +940,8 @@ function renderStudy() {
   if (deckStats.known === DECK_SIZE) {
     var nextAvail = activeDeck < DECK_COUNT && isDeckUnlocked(activeDeck);
     document.getElementById('study-content').innerHTML =
-      deckSelectorHTML() +
+      deckBadgeHTML(25, 25) +
       '<div id="study-wrap">' +
-      '<div class="deck-progress" style="text-align:center;font-size:.82rem;color:var(--known);margin:6px 16px">All 25 cards in Deck ' + activeDeck + ' known!</div>' +
       '<div class="study-splash"><div class="splash-icon">🎉</div><div class="splash-title">Deck ' + activeDeck + ' Complete!</div>' +
       '<div class="splash-sub">' + (nextAvail ? 'Deck ' + (activeDeck + 1) + ' is now unlocked.' : 'All 60 decks complete! Amazing!') + '</div>' +
       (nextAvail ? '<button class="splash-btn" onclick="changeDeck(1)">Start Deck ' + (activeDeck + 1) + '</button>' : '<button class="splash-btn" onclick="showTab(\'stats\')">View Progress</button>') +
@@ -966,7 +953,7 @@ function renderStudy() {
   }
   if (!studyQueue.length) {
     document.getElementById('study-content').innerHTML =
-      deckSelectorHTML() +
+      deckBadgeHTML(0, 0) +
       '<div id="study-wrap"><div class="study-splash"><div class="splash-icon">✅</div><div class="splash-title">Nothing left to study in Deck ' + activeDeck + '</div></div></div>';
     return;
   }
@@ -983,10 +970,9 @@ function renderStudyCard() {
   const tot = studyQueue.length;
   const pct = tot > 0 ? (studyIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('study-content').innerHTML =
-    deckSelectorHTML() +
-    '<div class="deck-progress" id="deck-progress" style="text-align:center;font-size:.73rem;color:var(--txt3);margin:2px 16px 6px;flex-shrink:0"></div>' +
+    deckBadgeHTML(studyIdx + 1, studyQueue.length) +
     `<div id="study-wrap">` +
-    `<div class="study-card" style="padding-top:8px">` +
+    `<div class="study-card" style="padding-top:4px">` +
       `<div class="sc-front" id="sc-front">` +
         `<div class="sc-wc-study" style="width:100%;overflow:hidden;border-radius:8px"><img id="sc-study-wc" alt="" style="width:100%;display:block;margin-top:-3.25%;border-radius:8px"></div>` +
         `<button class="sc-reveal" onclick="revealCard()">Reveal Answer</button>` +
@@ -1003,7 +989,7 @@ function renderStudyCard() {
       `<button class="sht-btn sht-review" onclick="studyMark('review')">Not Quite</button>` +
       `<button class="sht-btn sht-known" onclick="studyMark('known')">Got It</button>` +
     `</div></div>`;
-  requestAnimationFrame(function() { showStudyWordCloud(c.id); renderDeckProgress(); });
+  requestAnimationFrame(function() { showStudyWordCloud(c.id); });
 }
 
 function revealCard() {
@@ -1074,7 +1060,7 @@ function renderPlayCard() {
   var tot  = playPool.length;
   var pct  = tot > 0 ? (playIdx / tot * 100).toFixed(1) : 0;
   document.getElementById('play-content').innerHTML =
-    deckSelectorHTML() +
+    deckBadgeHTML(playIdx + 1, playPool.length) +
     '<div id="study-wrap">' +
     '<div class="study-card" style="padding-top:8px">' +
       '<div class="sc-front" id="play-front">' +
