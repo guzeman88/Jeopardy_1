@@ -338,44 +338,89 @@
 
     /* ── Deck grid ── */
     .deck-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 8px; padding: 4px 0 16px;
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 10px;
+      padding: 6px 8px 20px;
     }
-    .deck-dot {
-      aspect-ratio: 1; border-radius: 50%;
-      background: var(--bg4);
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: transform .15s, border-color .15s, box-shadow .15s;
-      -webkit-user-select: none; user-select: none;
+    .deck-node {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--bg3);
+      border: 2.5px solid rgba(255,255,255,.06);
+      cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+      -webkit-user-select: none; user-select: none; flex-shrink: 0;
     }
-    .deck-dot:active { transform: scale(.88); }
-    .deck-dot.complete  { background: var(--gold); border-color: var(--gold2); }
-    .deck-dot.partial   { border-color: var(--gold); }
-    .deck-dot.reviewing { border-color: var(--review); }
-    .deck-dot.active    { box-shadow: 0 0 0 2.5px var(--gold); }
-    .deck-dot.locked    { opacity: .3; pointer-events: none; }
+    .deck-node:active { transform: scale(.9); }
+    .deck-node .deck-num {
+      font-size: .78rem; font-weight: 800; color: var(--txt3);
+      position: relative; z-index: 1;
+      transition: color .2s;
+    }
+    .deck-node .deck-ring {
+      position: absolute; inset: -4px; border-radius: 50%;
+      pointer-events: none;
+    }
+    .deck-node .deck-ring circle {
+      fill: none; stroke: var(--gold); stroke-width: 3;
+      stroke-dasharray: 151; stroke-dashoffset: 151;
+      stroke-linecap: round;
+      transform: rotate(-90deg); transform-origin: center;
+      transition: stroke-dashoffset .5s var(--ease);
+    }
+    .deck-node.complete {
+      background: linear-gradient(145deg, #f7c948, #d4a800);
+      border-color: #e0b800; box-shadow: 0 4px 14px rgba(247,201,72,.25);
+    }
+    .deck-node.complete .deck-num { color: #0d0d1a; }
+    .deck-node.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(247,201,72,.15), 0 4px 16px rgba(0,0,0,.4);
+    }
+    .deck-node.active .deck-num { color: var(--gold); }
+    .deck-node.active.partial {
+      background: linear-gradient(145deg, rgba(247,201,72,.12), rgba(247,201,72,.04));
+    }
+    .deck-node.locked {
+      opacity: .28; pointer-events: none;
+    }
 
+    /* Deck detail card */
     .deck-detail-card {
-      background: var(--bg2); border: 1px solid rgba(255,255,255,.06);
-      border-radius: 14px; padding: 16px; margin-bottom: 16px;
+      background: var(--bg2); border: 1px solid rgba(247,201,72,.12);
+      border-radius: 16px; padding: 18px; margin: 4px 0 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
     }
+    .deck-detail-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    }
+    .deck-detail-icon {
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; font-weight: 900;
+    }
+    .deck-detail-icon.complete { background: linear-gradient(145deg, #f7c948, #d4a800); color: #0d0d1a; }
+    .deck-detail-icon.active   { background: var(--bg3); border: 2.5px solid var(--gold); color: var(--gold); }
+    .deck-detail-icon.locked   { background: var(--bg3); border: 2px solid rgba(255,255,255,.06); color: var(--txt3); }
+    .deck-detail-info { flex: 1; min-width: 0; }
     .deck-detail-title {
-      font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 8px;
+      font-size: .95rem; font-weight: 800; color: var(--txt); margin-bottom: 4px;
     }
-    .deck-detail-stat {
-      font-size: .82rem; color: var(--txt2); margin-bottom: 4px;
+    .deck-detail-sub {
+      font-size: .76rem; color: var(--txt3); line-height: 1.4;
     }
-    .deck-detail-bar {
-      height: 6px; border-radius: 3px; background: var(--bg3);
-      margin-top: 10px; overflow: hidden; display: flex;
+    .deck-detail-bars { display: flex; gap: 3px; margin-top: 6px; }
+    .deck-detail-bars span {
+      height: 4px; border-radius: 2px; flex: 1; min-width: 4px;
+      background: var(--bg4);
     }
-    .deck-detail-bar-fill { background: var(--gold); height: 100%; transition: width .3s; }
+    .deck-detail-bars span.known  { background: var(--known); }
+    .deck-detail-bars span.review { background: var(--review); }
     .deck-detail-card button {
-      margin-top: 12px; background: var(--gold); color: #0d0d1a;
-      border: none; border-radius: 10px; padding: 10px 20px;
+      margin-top: 4px; background: var(--gold); color: #0d0d1a;
+      border: none; border-radius: 12px; padding: 11px 20px;
       font-size: .85rem; font-weight: 700; cursor: pointer; width: 100%;
+      transition: opacity .15s;
     }
     .deck-detail-card button:active { opacity: .8; }
 
@@ -1146,17 +1191,47 @@ function renderDeckGrid() {
   if (!grid) return;
   grid.innerHTML = '';
   for (var i = 0; i < DECK_COUNT; i++) {
-    var dot = document.createElement('div');
-    dot.className = 'deck-dot';
     var stats = getDeckStats(i);
-    if (stats.known === DECK_SIZE) dot.classList.add('complete');
-    else if (stats.review > 0) dot.classList.add('reviewing');
-    else if (stats.known > 0) dot.classList.add('partial');
-    if (!isDeckUnlocked(i)) dot.classList.add('locked');
-    if (i + 1 === activeDeck) dot.classList.add('active');
-    dot.title = 'Deck ' + (i + 1) + ': ' + stats.known + '/' + DECK_SIZE + ' known';
-    (function(n) { dot.addEventListener('click', function() { showDeckDetail(n); }); })(i);
-    grid.appendChild(dot);
+    var complete = stats.known === DECK_SIZE;
+    var unlocked = isDeckUnlocked(i);
+    var isActive = i + 1 === activeDeck;
+    var pct = stats.known / DECK_SIZE;
+
+    var node = document.createElement('div');
+    node.className = 'deck-node';
+    if (complete) node.classList.add('complete');
+    if (isActive) node.classList.add('active');
+    if (!unlocked) node.classList.add('locked');
+    if (isActive && !complete && stats.known > 0) node.classList.add('partial');
+
+    // Progress ring SVG for active deck
+    if (isActive && !complete) {
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'deck-ring');
+      svg.setAttribute('viewBox', '0 0 56 56');
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '28'); circle.setAttribute('cy', '28'); circle.setAttribute('r', '24');
+      var circumference = 2 * Math.PI * 24;
+      circle.setAttribute('stroke-dasharray', circumference);
+      circle.setAttribute('stroke-dashoffset', circumference * (1 - pct));
+      circle.setAttribute('stroke', 'var(--gold)');
+      circle.setAttribute('stroke-width', '3');
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke-linecap', 'round');
+      circle.style.transform = 'rotate(-90deg)';
+      circle.style.transformOrigin = 'center';
+      svg.appendChild(circle);
+      node.appendChild(svg);
+    }
+
+    var num = document.createElement('span');
+    num.className = 'deck-num';
+    num.textContent = i + 1;
+    node.appendChild(num);
+
+    node.title = 'Deck ' + (i + 1) + ': ' + stats.known + '/' + DECK_SIZE + ' known';
+    (function(n) { node.addEventListener('click', function() { showDeckDetail(n); }); })(i);
+    grid.appendChild(node);
   }
 }
 
@@ -1165,16 +1240,37 @@ function showDeckDetail(n) {
   var stats = getDeckStats(n);
   var unlocked = isDeckUnlocked(n);
   var isActive = n + 1 === activeDeck;
+  var complete = stats.known === DECK_SIZE;
+  var iconClass = complete ? 'complete' : (unlocked ? 'active' : 'locked');
+  var iconText = complete ? '✓' : (n + 1);
+  var titleText = 'Deck ' + (n + 1);
+  var subText = stats.known + ' of ' + DECK_SIZE + ' known';
+  if (stats.review > 0) subText += ' · ' + stats.review + ' reviewing';
+  if (!unlocked) subText = '🔒 Complete previous decks to unlock';
+
+  // Build mini progress bars (25 tiny segments)
+  var barHTML = '<div class="deck-detail-bars">';
+  for (var j = 0; j < DECK_SIZE; j++) {
+    var cls = '';
+    if (j < stats.known) cls = ' known';
+    else if (j < stats.known + stats.review) cls = ' review';
+    barHTML += '<span class="' + cls + '"></span>';
+  }
+  barHTML += '</div>';
+
   detail.style.display = '';
   detail.innerHTML =
     '<div class="deck-detail-card">' +
-      '<div class="deck-detail-title">Deck ' + (n + 1) + (unlocked ? (stats.known === DECK_SIZE ? ' ✓' : '') : ' 🔒') + '</div>' +
-      '<div class="deck-detail-stat">' + stats.known + ' / ' + DECK_SIZE + ' known</div>' +
-      '<div class="deck-detail-stat">' + stats.review + ' reviewing</div>' +
-      '<div class="deck-detail-stat">' + stats.unseen + ' unseen</div>' +
-      '<div class="deck-detail-bar"><div class="deck-detail-bar-fill" style="width:' + (stats.known / DECK_SIZE * 100).toFixed(1) + '%"></div></div>' +
-      (unlocked && !isActive ? '<button onclick="setActiveDeck(' + (n + 1) + ');showTab(\'study\')">Study Deck ' + (n + 1) + '</button>' : '') +
-      (!unlocked ? '<div style="margin-top:8px;font-size:.78rem;color:var(--txt3)">Complete all cards in previous decks to unlock.</div>' : '') +
+      '<div class="deck-detail-row">' +
+        '<div class="deck-detail-icon ' + iconClass + '">' + iconText + '</div>' +
+        '<div class="deck-detail-info">' +
+          '<div class="deck-detail-title">' + titleText + '</div>' +
+          '<div class="deck-detail-sub">' + subText + '</div>' +
+        '</div>' +
+      '</div>' +
+      barHTML +
+      (unlocked && !isActive ? '<button onclick="setActiveDeck(' + (n + 1) + ');showTab(\'study\')">Study This Deck</button>' : '') +
+      (isActive ? '<button onclick="showTab(\'study\')">Continue Studying</button>' : '') +
     '</div>';
 }
 
