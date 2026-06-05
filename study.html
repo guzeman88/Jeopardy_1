@@ -337,38 +337,28 @@
     }
 
     /* ── Meander Path ── */
-    .meander-wrap { padding: 16px; display:flex;flex-direction:column;align-items:center }
-    .meander-path { display:flex;flex-direction:column;align-items:center;gap:0;width:100%;max-width:340px }
-    .m-pair { display:flex;align-items:center;position:relative }
-    .m-pair.fwd { flex-direction:row }
-    .m-pair.rev { flex-direction:row-reverse }
-    .m-ring { width:64px;height:64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;cursor:pointer;transition:transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none }
+    .meander-wrap { padding:12px 0 20px;display:flex;flex-direction:column;align-items:center }
+    .meander-path { position:relative;width:100%;max-width:380px }
+    .meander-path svg.m-svg { position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible }
+    .m-pair { display:flex;align-items:center;position:relative;z-index:1 }
+    .m-pair.fwd { flex-direction:row;justify-content:center;gap:0 }
+    .m-pair.rev { flex-direction:row-reverse;justify-content:center;gap:0 }
+    .m-ring { width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;cursor:pointer;transition:transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none }
     .m-ring:active { transform:scale(.9) }
-    .m-ring .m-num { font-size:.88rem;font-weight:900;line-height:1;letter-spacing:-.02em }
-    .m-ring .m-sub { font-size:.44rem;font-weight:600;line-height:1;margin-top:2px;letter-spacing:.02em }
-    .m-ring.done { border:3.5px solid var(--gold);box-shadow:0 0 16px rgba(247,201,72,.14) }
+    .m-ring .m-num { font-size:.95rem;font-weight:900;line-height:1;letter-spacing:-.02em }
+    .m-ring .m-sub { font-size:.47rem;font-weight:600;line-height:1;margin-top:2px;letter-spacing:.02em }
+    .m-ring.done { border:3.5px solid var(--gold);box-shadow:0 0 20px rgba(247,201,72,.16),0 0 40px rgba(247,201,72,.04) }
     .m-ring.done .m-num { color:var(--gold) }
     .m-ring.done .m-sub { color:rgba(247,201,72,.4) }
     .m-ring.active { border:3.5px solid transparent }
     .m-ring.active .m-num { color:var(--gold) }
     .m-ring.active .m-sub { color:rgba(247,201,72,.45) }
-    .m-ring.active .m-prog { position:absolute;inset:-5px;width:74px;height:74px;transform:rotate(-90deg) }
+    .m-ring.active .m-prog { position:absolute;inset:-6px;width:88px;height:88px;transform:rotate(-90deg) }
     .m-ring.active .m-prog .m-bg { fill:none;stroke:rgba(255,255,255,.04);stroke-width:3.5 }
     .m-ring.active .m-prog .m-fg { fill:none;stroke:#22c55e;stroke-width:3.5;stroke-linecap:round }
     .m-ring.locked { border:3px solid rgba(255,255,255,.04);cursor:default;pointer-events:none }
     .m-ring.locked .m-num { color:#1c1c30 }
     .m-ring.locked .m-sub { color:#12121e }
-    .m-hline { width:52px;height:2px;flex-shrink:0;margin:0 3px }
-    .m-hline.gold { background:rgba(247,201,72,.35) }
-    .m-hline.green { background:rgba(34,197,94,.2) }
-    .m-hline.dim { background:rgba(255,255,255,.05) }
-    .m-vwrap { display:flex;width:100%;height:14px }
-    .m-vwrap.right { justify-content:flex-end;padding-right:34px }
-    .m-vwrap.left { justify-content:flex-start;padding-left:34px }
-    .m-vline { width:2px;height:14px }
-    .m-vline.gold { background:rgba(247,201,72,.35) }
-    .m-vline.green { background:rgba(34,197,94,.2) }
-    .m-vline.dim { background:rgba(255,255,255,.05) }
 
     /* ── Stats tab ── */
     .stats-wrap { padding: 20px 16px 32px; }
@@ -1091,23 +1081,25 @@ function recomputeCounts() {
   }
 }
 
-function renderStats() {
-  renderMeander();
-}
+function renderStats() { renderMeander(); }
 
 function renderMeander() {
   var path = document.getElementById('meander-path');
   if (!path) return;
   path.innerHTML = '';
-  var circ = 2 * Math.PI * 34;
+  var circ = 2 * Math.PI * 40;
+  var RING = 76, GAP = 14; // ring size and vertical gap between pairs
   var pairs = Math.ceil(DECK_COUNT / 2);
 
+  // Build all pair rows with rings
+  var pairDivs = [];
   for (var p = 0; p < pairs; p++) {
     var fwd = p % 2 === 0;
     var i = p * 2;
 
     var pair = document.createElement('div');
     pair.className = 'm-pair ' + (fwd ? 'fwd' : 'rev');
+    pair.style.marginBottom = (p < pairs - 1) ? GAP + 'px' : '0';
 
     for (var ni = 0; ni < 2 && (i + ni) < DECK_COUNT; ni++) {
       var deckIdx = fwd ? (i + ni) : (i + 1 - ni);
@@ -1119,69 +1111,98 @@ function renderMeander() {
 
       var ring = document.createElement('div');
       ring.className = 'm-ring';
+      ring.setAttribute('data-deck', deckIdx);
       if (complete) ring.classList.add('done');
       else if (isActive) ring.classList.add('active');
       else if (!unlocked) ring.classList.add('locked');
 
       if (isActive && !complete) {
         var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('class', 'm-prog');
-        svg.setAttribute('viewBox', '0 0 74 74');
+        svg.setAttribute('class', 'm-prog'); svg.setAttribute('viewBox', '0 0 88 88');
         var bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        bg.setAttribute('class', 'm-bg'); bg.setAttribute('cx', '37'); bg.setAttribute('cy', '37'); bg.setAttribute('r', '34');
+        bg.setAttribute('class', 'm-bg'); bg.setAttribute('cx', '44'); bg.setAttribute('cy', '44'); bg.setAttribute('r', '40');
         svg.appendChild(bg);
         var fg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        fg.setAttribute('class', 'm-fg'); fg.setAttribute('cx', '37'); fg.setAttribute('cy', '37'); fg.setAttribute('r', '34');
+        fg.setAttribute('class', 'm-fg'); fg.setAttribute('cx', '44'); fg.setAttribute('cy', '44'); fg.setAttribute('r', '40');
         fg.setAttribute('stroke-dasharray', circ); fg.setAttribute('stroke-dashoffset', circ * (1 - pct));
-        svg.appendChild(fg);
-        ring.appendChild(svg);
+        svg.appendChild(fg); ring.appendChild(svg);
       }
 
-      var num = document.createElement('div');
-      num.className = 'm-num';
-      num.textContent = complete ? '✓' : (deckIdx + 1);
-      ring.appendChild(num);
+      var num = document.createElement('div'); num.className = 'm-num';
+      num.textContent = complete ? '✓' : (deckIdx + 1); ring.appendChild(num);
 
-      var sub = document.createElement('div');
-      sub.className = 'm-sub';
-      sub.textContent = stats.known + '/' + DECK_SIZE;
-      ring.appendChild(sub);
+      var sub = document.createElement('div'); sub.className = 'm-sub';
+      sub.textContent = stats.known + '/' + DECK_SIZE; ring.appendChild(sub);
 
-      ring.title = 'Deck ' + (deckIdx + 1) + ': ' + stats.known + '/' + DECK_SIZE + ' known';
+      ring.title = 'Deck ' + (deckIdx + 1);
       (function(d) { ring.addEventListener('click', function() { if (isDeckUnlocked(d)) { setActiveDeck(d + 1); showTab('study'); } }); })(deckIdx);
 
       pair.appendChild(ring);
-
-      if (ni === 0 && (i + 1) < DECK_COUNT) {
-        var hl = document.createElement('div');
-        hl.className = 'm-hline dim';
-        var nextIdx = fwd ? (i + 1) : i;
-        if (deckIdx + 1 < DECK_COUNT) {
-          var ns = getDeckStats(nextIdx);
-          if (stats.known === DECK_SIZE && ns.known > 0) hl.className = 'm-hline gold';
-          else if (nextIdx + 1 === activeDeck) hl.className = 'm-hline green';
-          else if (!isDeckUnlocked(nextIdx)) hl.className = 'm-hline dim';
-          else hl.className = 'm-hline gold';
-        }
-        pair.appendChild(hl);
-      }
     }
-
     path.appendChild(pair);
-
-    if (i + 2 < DECK_COUNT) {
-      var vw = document.createElement('div');
-      vw.className = 'm-vwrap ' + (fwd ? 'right' : 'left');
-      var vl = document.createElement('div');
-      vl.className = 'm-vline';
-      var vNext = fwd ? (i + 2) : (i + 1);
-      if (vNext < DECK_COUNT && getDeckStats(vNext).known > 0) vl.className = 'm-vline gold';
-      else if (vNext + 1 === activeDeck) vl.className = 'm-vline green';
-      else vl.className = 'm-vline dim';
-      vw.appendChild(vl);
-      path.appendChild(vw);
-    }
+    pairDivs.push({ el: pair, fwd: fwd, pairIdx: p, startDeck: i });
   }
+
+  // After DOM layout, draw SVG connector lines
+  requestAnimationFrame(function() {
+    var existingSvg = path.querySelector('svg.m-svg');
+    if (existingSvg) existingSvg.remove();
+
+    var svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgEl.setAttribute('class', 'm-svg');
+    var pathRect = path.getBoundingClientRect();
+
+    var allRings = path.querySelectorAll('.m-ring');
+    var ringRects = [];
+    allRings.forEach(function(r) {
+      var rr = r.getBoundingClientRect();
+      ringRects.push({
+        cx: rr.left + rr.width / 2 - pathRect.left,
+        cy: rr.top + rr.height / 2 - pathRect.top,
+        r: rr.width / 2,
+        deck: parseInt(r.getAttribute('data-deck'))
+      });
+    });
+
+    // Set SVG size
+    var maxY = 0;
+    ringRects.forEach(function(r) { if (r.cy + r.r > maxY) maxY = r.cy + r.r; });
+    svgEl.setAttribute('width', pathRect.width);
+    svgEl.setAttribute('height', maxY + 20);
+
+    // Draw connectors between consecutive decks
+    for (var di = 0; di < ringRects.length - 1; di++) {
+      var a = ringRects[di], b = ringRects[di + 1];
+      var dx = b.cx - a.cx, dy = b.cy - a.cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) continue;
+      var ux = dx / dist, uy = dy / dist;
+
+      // Start at edge of ring A, end at edge of ring B
+      var x1 = a.cx + ux * (a.r + 4);
+      var y1 = a.cy + uy * (a.r + 4);
+      var x2 = b.cx - ux * (b.r + 4);
+      var y2 = b.cy - uy * (b.r + 4);
+
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-linecap', 'round');
+
+      // Color
+      var aDone = a.deck < activeDeck - 1 || (a.deck === activeDeck - 1 && getDeckStats(a.deck).known === DECK_SIZE);
+      var bIsActive = b.deck + 1 === activeDeck;
+      var bLocked = !isDeckUnlocked(b.deck);
+      if (aDone && !bLocked) line.setAttribute('stroke', 'rgba(247,201,72,.35)');
+      else if (bIsActive) line.setAttribute('stroke', 'rgba(34,197,94,.25)');
+      else line.setAttribute('stroke', 'rgba(255,255,255,.05)');
+
+      svgEl.appendChild(line);
+    }
+
+    path.appendChild(svgEl);
+  });
 }
 
 /* ── Persistence ── */
