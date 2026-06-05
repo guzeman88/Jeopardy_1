@@ -337,12 +337,12 @@
     }
 
     /* ── Meander Path ── */
-    .meander-wrap { padding:12px 0 20px;display:flex;flex-direction:column;align-items:center }
-    .meander-path { position:relative;width:100%;max-width:380px }
+    .meander-wrap { padding:20px 0 24px;display:flex;flex-direction:column;align-items:center }
+    .meander-path { position:relative;width:100%;max-width:440px;padding:0 16px }
     .meander-path svg.m-svg { position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible }
     .m-pair { display:flex;align-items:center;position:relative;z-index:1 }
-    .m-pair.fwd { flex-direction:row;justify-content:center;gap:0 }
-    .m-pair.rev { flex-direction:row-reverse;justify-content:center;gap:0 }
+    .m-pair.fwd { flex-direction:row;justify-content:space-between }
+    .m-pair.rev { flex-direction:row-reverse;justify-content:space-between }
     .m-ring { width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;cursor:pointer;transition:transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none }
     .m-ring:active { transform:scale(.9) }
     .m-ring .m-num { font-size:.95rem;font-weight:900;line-height:1;letter-spacing:-.02em }
@@ -1088,7 +1088,7 @@ function renderMeander() {
   if (!path) return;
   path.innerHTML = '';
   var circ = 2 * Math.PI * 40;
-  var RING = 76, GAP = 14; // ring size and vertical gap between pairs
+  var RING = 76, GAP = 28; // ring size and vertical gap between pairs
   var pairs = Math.ceil(DECK_COUNT / 2);
 
   // Build all pair rows with rings
